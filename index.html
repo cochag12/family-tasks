@@ -1,0 +1,3157 @@
+<!DOCTYPE html>
+<!--
+    משימות משפחתיות - משפחת חגי וליאת
+    
+    היסטוריית גרסאות:
+    v3.0 (08/02/2026) - תיקון: מנהלים רואים כל המשימות, משימות מחזוריות (יומי/שבועי)
+    v2.7 (08/02/2026) - כפתורי מחיקות/גיבוי/שחזור רק לחגי (לא לליאת)
+    v2.6 (08/02/2026) - קליק על משתמש בסטטיסטיקות מעבר למשימות שלו, חיפוש גם לפי שם
+    v2.5 (08/02/2026) - חיפוש משימות לפי שם או תיאור
+    v2.4 (08/02/2026) - תיקון באג: משימות עצמאיות לא נראות למי שלא אמור
+    v2.3 (08/02/2026) - סטטיסטיקות מפורטות רק למנהלים, לשוניות משימות/קניות
+    v2.2 (08/02/2026) - מספור בטאבים, הסרת פילטר 'הכל', ברירת מחדל לממתינות
+    v2.1 (08/02/2026) - רשימה מסודרת עם מספור, חיפוש מוצרים, כוכבי שבוע רק לחגי
+    v2.0 (08/02/2026) - Firebase Realtime Database - סנכרון בזמן אמת
+    v1.6 (קודם)      - גרסה מקורית עם localStorage
+-->
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משימות משפחתיות - משפחת חגי וליאת v3.0 🔥</title>
+    
+    <!-- Version Info -->
+    <meta name="version" content="3.0">
+    <meta name="last-updated" content="2026-02-08">
+    <meta name="sync" content="firebase-realtime">
+    <meta name="changelog" content="תיקון תצוגה למנהלים, משימות מחזוריות">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=Varela+Round&family=Alef:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-liat: #E91E63;
+            --color-hagai: #2196F3;
+            --color-maya: #00BCD4;
+            --color-ariel: #4CAF50;
+            --color-ann: #FF9800;
+            
+            --bg-main: #FFF8F3;
+            --bg-card: #FFFFFF;
+            --text-primary: #2D1B12;
+            --text-secondary: #6B5548;
+            --shadow-sm: 0 2px 8px rgba(139, 69, 19, 0.08);
+            --shadow-md: 0 4px 16px rgba(139, 69, 19, 0.12);
+            --shadow-lg: 0 8px 32px rgba(139, 69, 19, 0.16);
+            
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(135deg, #FFF8F3 0%, #FFE5D9 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Decorative background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 152, 0, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -15%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(33, 150, 243, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header */
+        header {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 25px 35px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            font-size: 3rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .user-info h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .user-info p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        #syncStatus {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(0,0,0,0.03);
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .sync-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #E91E63, #FF6B9D);
+            color: white;
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(0,0,0,0.05);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0,0,0,0.08);
+        }
+        
+        .btn-logout {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid currentColor;
+        }
+        
+        .btn-logout:hover {
+            background: var(--text-secondary);
+            color: white;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .tab:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .tab.active {
+            border-color: #E91E63;
+            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.25);
+            background: linear-gradient(135deg, #FFF 0%, #FFE5EE 100%);
+        }
+        
+        .tab-count {
+            display: inline-block;
+            background: #E91E63;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-right: 8px;
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        .tab.active .tab-count {
+            background: white;
+            color: #E91E63;
+        }
+        
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 30px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 25px;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 18px;
+            background: rgba(0,0,0,0.04);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: 'Rubik', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(0,0,0,0.06);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #00BCD4, #00E5FF);
+            color: white;
+            border-color: #00BCD4;
+            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+        }
+        
+        .filter-count {
+            background: rgba(255,255,255,0.9);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .filter-btn.active .filter-count {
+            background: rgba(255,255,255,0.95);
+            color: #00BCD4;
+        }
+        
+        /* Task/Shopping Item */
+        .item {
+            background: linear-gradient(135deg, #FFF 0%, #FAFAFA 100%);
+            border-radius: var(--radius-sm);
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-right: 4px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .item:hover {
+            transform: translateX(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .item.pinned {
+            border-right-color: #E91E63;
+            background: linear-gradient(135deg, #FFF0F5 0%, #FFE5EE 100%);
+        }
+        
+        .item.completed {
+            opacity: 0.65;
+        }
+        
+        .item.completed .item-title {
+            text-decoration: line-through;
+        }
+        
+        .item-number {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .item-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        
+        .item-header {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .item-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .item-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        
+        .badge-priority-high {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .badge-priority-medium {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+        
+        .badge-priority-low {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .badge-pinned {
+            background: linear-gradient(135deg, #E91E63, #9C27B0);
+            color: white;
+        }
+        
+        .badge-personal {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+        
+        .item-description {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .item-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+        }
+        
+        .user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+        
+        .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.8rem;
+            font-family: 'Rubik', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+            white-space: nowrap;
+        }
+        
+        .btn-icon:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-complete {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .btn-delete {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .btn-pin {
+            background: #FCE4EC;
+            color: #C2185B;
+        }
+        
+        .btn-notes {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+        
+        .btn-read {
+            background: #F3E5F5;
+            color: #7B1FA2;
+        }
+        
+        .btn-read.reading {
+            animation: reading-pulse 1s infinite;
+        }
+        
+        @keyframes reading-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .note-badge {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            background: #C62828;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: 'Rubik', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #E91E63;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .form-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        /* Assignee Selection */
+        .assignee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .assignee-btn {
+            padding: 15px;
+            border: 3px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: rgba(0,0,0,0.03);
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .assignee-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .assignee-btn.selected {
+            border-color: currentColor;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .assignee-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .assignee-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Priority Selection */
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .priority-btn {
+            padding: 15px;
+            border: 3px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: rgba(0,0,0,0.03);
+            font-weight: 600;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .priority-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        .priority-btn.selected {
+            border-color: currentColor;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 35px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.3s ease;
+        }
+        
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,0.05);
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: rgba(0,0,0,0.1);
+            transform: rotate(90deg);
+        }
+        
+        /* Statistics */
+        .stat-card {
+            background: linear-gradient(135deg, #FFF 0%, #F8F8F8 100%);
+            border-radius: var(--radius-md);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-right: 5px solid;
+        }
+        
+        .stat-card.tasks {
+            border-right-color: #E91E63;
+        }
+        
+        .stat-card.shopping {
+            border-right-color: #FF9800;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-name {
+            font-weight: 600;
+        }
+        
+        .stat-count {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* Statistics Tabs */
+        .stat-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0,0,0,0.05);
+        }
+        
+        .stat-tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .stat-tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .stat-tab.active {
+            color: #E91E63;
+            border-bottom-color: #E91E63;
+        }
+        
+        .stat-content {
+            display: none;
+        }
+        
+        .stat-content.active {
+            display: block;
+        }
+        
+        .member-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #F9FAFB;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .member-stat:hover {
+            background: #E5E7EB;
+            transform: translateX(-3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .member-icon {
+            font-size: 1.5rem;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .member-count {
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            background: white;
+            border-radius: 10px;
+        }
+        
+        .member-count.zero {
+            opacity: 0.5;
+            color: var(--text-secondary);
+        }
+        
+        .shopping-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .shopping-stat-box {
+            background: #F9FAFB;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+        
+        .shopping-stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        
+        .shopping-stat-number.pending {
+            color: #2196F3;
+        }
+        
+        .shopping-stat-number.purchased {
+            color: #4CAF50;
+        }
+        
+        .shopping-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        /* Top Performers */
+        .performer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFF 0%, #FAFAFA 100%);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        
+        .performer-item:hover {
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .performer-rank {
+            font-size: 1.8rem;
+            width: 50px;
+            text-align: center;
+        }
+        
+        .performer-info {
+            flex: 1;
+        }
+        
+        .performer-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+        
+        .performer-points {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Notes */
+        .notes-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .note-item {
+            background: #F8F8F8;
+            padding: 18px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 15px;
+            border-right: 4px solid #E0E0E0;
+        }
+        
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .note-author {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .note-text {
+            line-height: 1.6;
+        }
+        
+        /* Deletion History */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .history-table th,
+        .history-table td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .history-table th {
+            background: rgba(0,0,0,0.03);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .history-table tr:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-text {
+            font-size: 1.1rem;
+        }
+        
+        /* Quick Add */
+        .quick-add {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .quick-add input {
+            flex: 1;
+        }
+        
+        /* Search Box */
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: 'Rubik', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00BCD4;
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .login-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-align: center;
+            background: linear-gradient(135deg, #E91E63, #FF9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .login-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+        
+        .login-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .login-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 35px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-md);
+            border: 3px solid transparent;
+        }
+        
+        .login-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .login-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .login-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .login-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .login-badge.pending {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .login-badge.complete {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .assignee-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .item {
+                flex-wrap: wrap;
+            }
+            
+            .item-content {
+                width: 100%;
+            }
+            
+            .item-actions {
+                flex-wrap: wrap;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .btn-icon {
+                font-size: 0.75rem;
+                padding: 6px 10px;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
+        <p class="login-subtitle">בחרו את חבר המשפחה</p>
+        <div class="login-grid" id="loginGrid"></div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="container hidden">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                <div class="header-user">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="user-info">
+                        <h1 id="userName"></h1>
+                        <p id="userRole"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div id="syncStatus">
+                    <span class="sync-dot" style="background: #FFA500;"></span>
+                    מתחבר...
+                </div>
+                
+                <button class="btn btn-secondary hidden" id="btnDeletionHistory" onclick="openDeletionHistoryModal()">
+                    🗑️ מחיקות
+                </button>
+                
+                <button class="btn btn-secondary hidden" id="btnBackup" onclick="performManualBackup()">
+                    💾 גיבוי
+                </button>
+                
+                <button class="btn btn-secondary hidden" id="btnRestore" onclick="performRestore()">
+                    📥 שחזור
+                </button>
+                
+                <button class="btn btn-logout" onclick="logout()">
+                    🚪 יציאה
+                </button>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('tasks')">
+                <span class="tab-count" id="tasksTabCount">0</span>
+                📋 משימות
+            </div>
+            <div class="tab" onclick="switchTab('shopping')">
+                <span class="tab-count" id="shoppingTabCount">0</span>
+                🛒 קניות
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Tasks Tab -->
+                <div id="tasksTab" class="tab-content">
+                    <div class="card">
+                        <h3 class="card-title">➕ הוספת משימה</h3>
+                        <button class="btn btn-primary" onclick="openAddTaskModal()">
+                            ➕ הוסף משימה חדשה
+                        </button>
+                    </div>
+                    
+                    <!-- Search Box -->
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="tasksSearchInput" placeholder="🔍 חיפוש משימה..." oninput="filterTasksBySearch()">
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filters">
+                        <button class="filter-btn active" onclick="filterTasks('pending', event)">
+                            ממתינות
+                            <span class="filter-count" id="pendingTasksCount">0</span>
+                        </button>
+                        <button class="filter-btn" onclick="filterTasks('completed', event)">
+                            הושלמו
+                        </button>
+                        <button class="filter-btn" onclick="filterTasks('personal', event)">
+                            משימות עצמאיות
+                            <span class="filter-count" id="personalTasksCount">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Tasks List -->
+                    <div id="tasksList"></div>
+                </div>
+
+                <!-- Shopping Tab -->
+                <div id="shoppingTab" class="tab-content hidden">
+                    <div class="card">
+                        <h3 class="card-title">➕ הוספת פריט</h3>
+                        <form class="quick-add" onsubmit="quickAddItem(event)">
+                            <input type="text" class="form-input" id="quickItemInput" placeholder="שם הפריט..." required>
+                            <button type="submit" class="btn btn-primary">➕ הוסף</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Search Box -->
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="shoppingSearchInput" placeholder="🔍 חיפוש מוצר..." oninput="filterShoppingBySearch()">
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filters">
+                        <button class="filter-btn active" onclick="filterShopping('pending', event)">
+                            צריך לקנות
+                        </button>
+                        <button class="filter-btn" onclick="filterShopping('purchased', event)">
+                            נקנו
+                        </button>
+                    </div>
+
+                    <!-- Shopping List -->
+                    <div id="shoppingList"></div>
+                </div>
+            </div>
+
+            <!-- Statistics Sidebar -->
+            <div class="sidebar">
+                <div class="card" id="statsCard">
+                    <h3 class="card-title">📊 סטטיסטיקות</h3>
+                    <div id="statsContainer"></div>
+                </div>
+
+                <div class="card" id="topPerformersCard">
+                    <h3 class="card-title">🏆 כוכבי השבוע</h3>
+                    <div id="topPerformers"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
+                    גרסה 3.0 🔥
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ משימה חדשה</h3>
+                <button class="modal-close" onclick="closeAddTaskModal()">✕</button>
+            </div>
+            
+            <form id="addTaskForm" onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label class="form-label">שם המשימה *</label>
+                    <input type="text" class="form-input" id="taskTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">תיאור</label>
+                    <textarea class="form-textarea" id="taskDescription"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">הקצאה למשתמש *</label>
+                    <div class="assignee-grid" id="assigneeGrid"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">תאריך יעד</label>
+                    <input type="date" class="form-input" id="taskDueDate">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">עדיפות</label>
+                    <div class="priority-grid">
+                        <button type="button" class="priority-btn" style="background: #FFEBEE; color: #C62828;" onclick="selectPriority('high', event)">
+                            🔴 גבוהה
+                        </button>
+                        <button type="button" class="priority-btn selected" style="background: #FFF3E0; color: #E65100;" onclick="selectPriority('medium', event)">
+                            🟡 רגילה
+                        </button>
+                        <button type="button" class="priority-btn" style="background: #E8F5E9; color: #2E7D32;" onclick="selectPriority('low', event)">
+                            🟢 נמוכה
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="taskIsPersonal">
+                        <span>🔒 משימה עצמאית (רק המשתמש שהוקצתה לו יראה אותה)</span>
+                    </label>
+                </div>
+                
+                <div class="form-group" id="recurringGroup" style="display: none;">
+                    <label class="form-label">🔄 משימה מחזורית</label>
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="taskIsRecurring" onchange="toggleRecurringOptions()">
+                        <span>משימה חוזרת (מתאפסת אוטומטית לאחר השלמה)</span>
+                    </label>
+                    <div id="recurringOptions" style="display: none; margin-top: 15px;">
+                        <select class="form-select" id="recurringType">
+                            <option value="daily">יומית</option>
+                            <option value="weekly">שבועית</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    ➕ הוסף משימה
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">💬 הערות למשימה</h3>
+                <button class="modal-close" onclick="closeNotesModal()">✕</button>
+            </div>
+            
+            <div class="notes-list" id="notesList"></div>
+            
+            <div id="addNoteSection">
+                <div class="form-group">
+                    <label class="form-label">הוסף הערה</label>
+                    <textarea class="form-textarea" id="newNoteText" placeholder="כתוב הערה..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addNote()">💬 הוסף הערה</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deletion History Modal -->
+    <div id="deletionHistoryModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🗑️ היסטוריית מחיקות</h3>
+                <button class="modal-close" onclick="closeDeletionHistoryModal()">✕</button>
+            </div>
+            
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>סוג</th>
+                        <th>שם</th>
+                        <th>נמחק על ידי</th>
+                        <th>תאריך</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="deletionHistoryBody"></tbody>
+            </table>
+            
+            <div style="margin-top: 25px; text-align: left;">
+                <button class="btn btn-delete" onclick="clearDeletionHistory()">
+                    🗑️ נקה הכל
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE CONFIGURATION ====================
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkOH2RMig-uUYqPGfpB_ECVGQ6sSty-RQ",
+            authDomain: "family-tasks-b3460.firebaseapp.com",
+            databaseURL: "https://family-tasks-b3460-default-rtdb.firebaseio.com",
+            projectId: "family-tasks-b3460",
+            storageBucket: "family-tasks-b3460.firebasestorage.app",
+            messagingSenderId: "679268328049",
+            appId: "1:679268328049:web:e8b0a3e8f5c8d9e0a8b0a3"
+        };
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        
+        // Firebase references
+        const tasksRef = db.ref('tasks');
+        const shoppingRef = db.ref('shopping');
+        const deletionHistoryRef = db.ref('deletionHistory');
+        
+        // ==================== GLOBAL VARIABLES ====================
+        
+        // Family members
+        const familyMembers = {
+            liat: { id: 'liat', name: 'ליאת', icon: '👩', color: '#E91E63', role: 'מנהלת', isAdmin: true },
+            hagai: { id: 'hagai', name: 'חגי', icon: '👨', color: '#2196F3', role: 'מנהל', isAdmin: true, canBackup: true },
+            maya: { id: 'maya', name: 'מיה', icon: '👧', color: '#00BCD4', role: 'משתמשת' },
+            ariel: { id: 'ariel', name: 'אריאל', icon: '🧒', color: '#4CAF50', role: 'משתמש' },
+            ann: { id: 'ann', name: 'אן', icon: '👧', color: '#FF9800', role: 'משתמשת', canSpeak: true }
+        };
+        
+        // Current state
+        let currentUser = null;
+        let selectedAssignee = null;
+        let selectedPriority = 'medium';
+        let currentFilter = 'pending';
+        let currentShoppingFilter = 'pending';
+        let currentTaskForNotes = null;
+        let shoppingSearchQuery = '';
+        let tasksSearchQuery = '';
+        
+        // Data (will be populated from Firebase)
+        let tasks = {};
+        let shopping = {};
+        let deletionHistory = [];
+        
+        // Sync status
+        let isOnline = false;
+        let isSyncing = false;
+        
+        // Backup system (for Hagai)
+        let backupDirectoryHandle = null;
+        const DB_NAME = 'FamilyTasksDB';
+        const STORE_NAME = 'backupSettings';
+        
+        // ==================== INITIALIZATION ====================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+        
+        function initializeApp() {
+            // Check if user is logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser && familyMembers[savedUser]) {
+                loginUser(savedUser);
+            } else {
+                showLoginScreen();
+            }
+        }
+        
+        // ==================== LOGIN ====================
+        
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            renderLoginCards();
+        }
+        
+        function renderLoginCards() {
+            const grid = document.getElementById('loginGrid');
+            grid.innerHTML = '';
+            
+            // Get pending tasks count for each user from Firebase
+            tasksRef.once('value', (snapshot) => {
+                const tasksData = snapshot.val() || {};
+                
+                Object.values(familyMembers).forEach(member => {
+                    const pendingCount = Object.values(tasksData).filter(task => 
+                        task.assignedTo === member.id && task.status === 'pending'
+                    ).length;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'login-card';
+                    card.style.borderColor = member.color;
+                    card.onclick = () => loginUser(member.id);
+                    
+                    card.innerHTML = `
+                        <div class="login-icon">${member.icon}</div>
+                        <div class="login-name">${member.name}</div>
+                        <div class="login-badge ${pendingCount > 0 ? 'pending' : 'complete'}">
+                            ${pendingCount > 0 ? `${pendingCount} משימות` : '✓ אין משימות'}
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            });
+        }
+        
+        function loginUser(userId) {
+            currentUser = familyMembers[userId];
+            localStorage.setItem('currentUser', userId);
+            showMainApp();
+        }
+        
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update header
+            document.getElementById('userAvatar').textContent = currentUser.icon;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.role;
+            
+            // Show/hide stats card - only for admins (Liat and Hagai)
+            const statsCard = document.getElementById('statsCard');
+            if (currentUser.isAdmin) {
+                statsCard.classList.remove('hidden');
+            } else {
+                statsCard.classList.add('hidden');
+            }
+            
+            // Show/hide top performers card - only for Hagai
+            const topPerformersCard = document.getElementById('topPerformersCard');
+            if (currentUser.id === 'hagai') {
+                topPerformersCard.classList.remove('hidden');
+            } else {
+                topPerformersCard.classList.add('hidden');
+            }
+            
+            // Show deletion history, backup, restore buttons ONLY for Hagai
+            if (currentUser.id === 'hagai') {
+                document.getElementById('btnDeletionHistory').classList.remove('hidden');
+                document.getElementById('btnBackup').classList.remove('hidden');
+                document.getElementById('btnRestore').classList.remove('hidden');
+                setupAutoBackup();
+            }
+            
+            // Setup Firebase listeners
+            setupFirebaseListeners();
+            
+            // Monitor connection status
+            monitorConnection();
+            
+            // Populate assignee grid
+            populateAssigneeGrid();
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            
+            // Remove Firebase listeners
+            tasksRef.off();
+            shoppingRef.off();
+            deletionHistoryRef.off();
+            
+            showLoginScreen();
+        }
+        
+        // ==================== FIREBASE LISTENERS ====================
+        
+        function setupFirebaseListeners() {
+            // Tasks listener
+            tasksRef.on('value', (snapshot) => {
+                tasks = snapshot.val() || {};
+                loadTasks();
+                loadStats();
+                updateTabCounts();
+            });
+            
+            // Shopping listener
+            shoppingRef.on('value', (snapshot) => {
+                shopping = snapshot.val() || {};
+                loadShopping();
+                loadStats();
+                updateTabCounts();
+            });
+            
+            // Deletion history listener
+            deletionHistoryRef.on('value', (snapshot) => {
+                deletionHistory = snapshot.val() || [];
+            });
+        }
+        
+        function updateTabCounts() {
+            // Count pending tasks for current user
+            const allTasks = Object.values(tasks);
+            const visibleTasks = allTasks.filter(t => !t.isPersonal || t.assignedTo === currentUser.id || currentUser.id === 'hagai');
+            const pendingTasks = visibleTasks.filter(t => t.status === 'pending').length;
+            
+            // Count pending shopping items
+            const allShopping = Object.values(shopping);
+            const pendingShopping = allShopping.filter(i => i.status === 'pending').length;
+            
+            // Update tab counts
+            const tasksTabCount = document.getElementById('tasksTabCount');
+            const shoppingTabCount = document.getElementById('shoppingTabCount');
+            
+            if (tasksTabCount) {
+                tasksTabCount.textContent = pendingTasks;
+                tasksTabCount.style.display = pendingTasks > 0 ? 'inline-block' : 'none';
+            }
+            
+            if (shoppingTabCount) {
+                shoppingTabCount.textContent = pendingShopping;
+                shoppingTabCount.style.display = pendingShopping > 0 ? 'inline-block' : 'none';
+            }
+        }
+        
+        function monitorConnection() {
+            const connectedRef = db.ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                isOnline = snap.val() === true;
+                updateSyncStatus();
+            });
+        }
+        
+        function updateSyncStatus() {
+            const statusDiv = document.getElementById('syncStatus');
+            if (!statusDiv) return;
+            
+            if (isSyncing) {
+                statusDiv.innerHTML = '<span class="sync-dot" style="background: #FFA500;"></span> מסנכרן...';
+            } else if (isOnline) {
+                statusDiv.innerHTML = '<span class="sync-dot" style="background: #4CAF50;"></span> מחובר';
+            } else {
+                statusDiv.innerHTML = '<span class="sync-dot" style="background: #f44336;"></span> לא מחובר';
+            }
+        }
+        
+        // ==================== TABS ====================
+        
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.getElementById('tasksTab').classList.toggle('hidden', tabName !== 'tasks');
+            document.getElementById('shoppingTab').classList.toggle('hidden', tabName !== 'shopping');
+            
+            // Clear search when leaving tabs
+            if (tabName !== 'shopping') {
+                shoppingSearchQuery = '';
+                const searchInput = document.getElementById('shoppingSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            }
+            
+            if (tabName !== 'tasks') {
+                tasksSearchQuery = '';
+                const searchInput = document.getElementById('tasksSearchInput');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            }
+        }
+        
+        // ==================== TASKS ====================
+        
+        function populateAssigneeGrid() {
+            const grid = document.getElementById('assigneeGrid');
+            grid.innerHTML = '';
+            
+            Object.values(familyMembers).forEach(member => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'assignee-btn';
+                btn.style.color = member.color;
+                btn.onclick = (e) => selectAssignee(member.id, e);
+                
+                btn.innerHTML = `
+                    <div class="assignee-icon">${member.icon}</div>
+                    <div class="assignee-name">${member.name}</div>
+                `;
+                
+                grid.appendChild(btn);
+            });
+        }
+        
+        function selectAssignee(memberId, event) {
+            selectedAssignee = memberId;
+            
+            // Update UI
+            document.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+        
+        function selectPriority(priority, event) {
+            selectedPriority = priority;
+            
+            // Update UI
+            document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+        
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('active');
+            
+            // Show recurring option only for admins
+            const recurringGroup = document.getElementById('recurringGroup');
+            if (currentUser.isAdmin) {
+                recurringGroup.style.display = 'block';
+            } else {
+                recurringGroup.style.display = 'none';
+            }
+        }
+        
+        function closeAddTaskModal() {
+            document.getElementById('addTaskModal').classList.remove('active');
+            document.getElementById('addTaskForm').reset();
+            selectedAssignee = null;
+            selectedPriority = 'medium';
+            
+            // Reset recurring options
+            document.getElementById('recurringOptions').style.display = 'none';
+            
+            // Reset selections
+            document.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector('.priority-btn[onclick*="medium"]').classList.add('selected');
+        }
+        
+        function toggleRecurringOptions() {
+            const isRecurring = document.getElementById('taskIsRecurring').checked;
+            const options = document.getElementById('recurringOptions');
+            options.style.display = isRecurring ? 'block' : 'none';
+        }
+        
+        function submitTask(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const dueDate = document.getElementById('taskDueDate').value;
+            const isPersonal = document.getElementById('taskIsPersonal').checked;
+            const isRecurring = document.getElementById('taskIsRecurring') ? document.getElementById('taskIsRecurring').checked : false;
+            const recurringType = isRecurring ? document.getElementById('recurringType').value : null;
+            
+            if (!title || !selectedAssignee) {
+                alert('נא למלא את כל השדות החובה');
+                return;
+            }
+            
+            const assignedUser = familyMembers[selectedAssignee];
+            const taskId = 'task_' + Date.now();
+            
+            const task = {
+                id: taskId,
+                title,
+                description,
+                assignedTo: selectedAssignee,
+                assignedToName: assignedUser.name,
+                assignedToIcon: assignedUser.icon,
+                assignedToColor: assignedUser.color,
+                dueDate,
+                priority: selectedPriority,
+                status: 'pending',
+                createdAt: Date.now(),
+                createdBy: currentUser.name,
+                createdById: currentUser.id,
+                completedAt: null,
+                completedBy: null,
+                completedById: null,
+                isPersonal,
+                isPinned: false,
+                notes: [],
+                isRecurring,
+                recurringType,
+                lastCompletedAt: null
+            };
+            
+            // Add to Firebase
+            isSyncing = true;
+            updateSyncStatus();
+            
+            tasksRef.child(taskId).set(task)
+                .then(() => {
+                    console.log('✅ משימה נוספה ל-Firebase');
+                    closeAddTaskModal();
+                })
+                .catch(error => {
+                    console.error('❌ שגיאה:', error);
+                    alert('שגיאה בהוספת המשימה');
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+        }
+        
+        function loadTasks() {
+            const container = document.getElementById('tasksList');
+            container.innerHTML = '';
+            
+            let filteredTasks = Object.values(tasks);
+            
+            // Filter by visibility based on user role
+            if (currentUser.isAdmin) {
+                // Admins (Liat and Hagai) see all non-personal tasks + their own personal tasks
+                // Hagai sees everything including all personal tasks
+                if (currentUser.id !== 'hagai') {
+                    // Liat sees all tasks except personal tasks of others
+                    filteredTasks = filteredTasks.filter(task => 
+                        !task.isPersonal || task.assignedTo === currentUser.id
+                    );
+                }
+                // Hagai sees ALL tasks (no filter)
+            } else {
+                // Regular users see: their own tasks only (both personal and regular)
+                filteredTasks = filteredTasks.filter(task => 
+                    task.assignedTo === currentUser.id
+                );
+            }
+            
+            // Apply search filter
+            if (tasksSearchQuery) {
+                filteredTasks = filteredTasks.filter(task => 
+                    task.title.toLowerCase().includes(tasksSearchQuery.toLowerCase()) ||
+                    (task.description && task.description.toLowerCase().includes(tasksSearchQuery.toLowerCase())) ||
+                    (task.assignedToName && task.assignedToName.toLowerCase().includes(tasksSearchQuery.toLowerCase()))
+                );
+            }
+            
+            // Apply status/type filter
+            if (currentFilter === 'pending') {
+                filteredTasks = filteredTasks.filter(t => t.status === 'pending');
+            } else if (currentFilter === 'completed') {
+                filteredTasks = filteredTasks.filter(t => t.status === 'completed');
+            } else if (currentFilter === 'personal') {
+                // Show only personal tasks that the user can see
+                filteredTasks = filteredTasks.filter(t => {
+                    if (!t.isPersonal) return false;
+                    // Hagai sees all personal tasks
+                    if (currentUser.id === 'hagai') return true;
+                    // Others see only their own personal tasks
+                    return t.assignedTo === currentUser.id;
+                });
+            }
+            
+            // Sort: pinned first, then by status, then by date
+            filteredTasks.sort((a, b) => {
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+                if (a.status === 'pending' && b.status === 'completed') return -1;
+                if (a.status === 'completed' && b.status === 'pending') return 1;
+                return b.createdAt - a.createdAt;
+            });
+            
+            // Update filter counts
+            const allTasks = Object.values(tasks).filter(t => {
+                if (currentUser.isAdmin) {
+                    if (currentUser.id === 'hagai') return true; // Hagai sees all
+                    return !t.isPersonal || t.assignedTo === currentUser.id; // Liat sees all except others' personal
+                }
+                return t.assignedTo === currentUser.id; // Regular users see only their tasks
+            });
+            const pending = allTasks.filter(t => t.status === 'pending').length;
+            const personal = allTasks.filter(t => t.isPersonal).length;
+            
+            document.getElementById('pendingTasksCount').textContent = pending;
+            document.getElementById('personalTasksCount').textContent = personal;
+            
+            if (filteredTasks.length === 0) {
+                const emptyMessage = tasksSearchQuery 
+                    ? `לא נמצאו תוצאות עבור "${tasksSearchQuery}"`
+                    : 'אין משימות להצגה';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-text">${emptyMessage}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredTasks.forEach((task, index) => {
+                const taskEl = createTaskElement(task, index);
+                container.appendChild(taskEl);
+            });
+        }
+        
+        function createTaskElement(task, index) {
+            const div = document.createElement('div');
+            div.className = `item ${task.isPinned ? 'pinned' : ''} ${task.status === 'completed' ? 'completed' : ''}`;
+            div.setAttribute('data-task-id', task.id);
+            
+            const priorityLabels = {
+                high: { emoji: '🔴', class: 'badge-priority-high', text: 'גבוהה' },
+                medium: { emoji: '🟡', class: 'badge-priority-medium', text: 'רגילה' },
+                low: { emoji: '🟢', class: 'badge-priority-low', text: 'נמוכה' }
+            };
+            
+            const priority = priorityLabels[task.priority];
+            const isAdmin = currentUser.isAdmin;
+            
+            let badges = '';
+            if (task.isPinned) {
+                badges += '<span class="badge badge-pinned">📌</span>';
+            }
+            if (task.isPersonal) {
+                badges += '<span class="badge badge-personal">🔒</span>';
+            }
+            if (task.isRecurring) {
+                const recurringText = task.recurringType === 'daily' ? 'יומית' : 'שבועית';
+                badges += `<span class="badge" style="background: #E1F5FE; color: #0277BD;">🔄 ${recurringText}</span>`;
+            }
+            badges += `<span class="badge ${priority.class}">${priority.emoji}</span>`;
+            
+            let meta = `<span class="user-chip" style="background-color: ${task.assignedToColor}22; color: ${task.assignedToColor}">${task.assignedToIcon} ${task.assignedToName}</span>`;
+            
+            if (task.dueDate) {
+                const date = new Date(task.dueDate);
+                meta += ` • 📅 ${date.toLocaleDateString('he-IL')}`;
+            }
+            
+            if (task.status === 'completed' && task.completedBy) {
+                const completedDate = new Date(task.completedAt);
+                meta += ` • ✓ ${task.completedBy}`;
+            }
+            
+            let actions = '';
+            
+            if (task.status === 'pending') {
+                actions += `<button class="btn-icon btn-complete" onclick="completeTask('${task.id}')">✓</button>`;
+            }
+            
+            if (isAdmin) {
+                actions += `<button class="btn-icon btn-delete" onclick="deleteTask('${task.id}')">🗑️</button>`;
+            }
+            
+            actions += `<button class="btn-icon btn-pin" onclick="togglePinTask('${task.id}')">${task.isPinned ? '📌' : '📌'}</button>`;
+            
+            const notesCount = task.notes ? task.notes.length : 0;
+            actions += `<button class="btn-icon btn-notes" onclick="openNotesModal('${task.id}')">
+                ${notesCount > 0 ? `<span class="note-badge">${notesCount}</span>` : ''}
+                💬
+            </button>`;
+            
+            if (currentUser.canSpeak) {
+                actions += `<button class="btn-icon btn-read read-btn" onclick="readTask('${task.id}')">🔊</button>`;
+            }
+            
+            div.innerHTML = `
+                <div class="item-number">${index + 1}.</div>
+                <div class="item-content">
+                    <div class="item-header">
+                        <div class="item-title">
+                            ${task.isPersonal ? '🔒 ' : ''}${task.title}
+                        </div>
+                        ${task.description ? `<div class="item-description">${task.description}</div>` : ''}
+                        <div class="item-meta">${meta}</div>
+                    </div>
+                    <div class="item-badges">${badges}</div>
+                </div>
+                <div class="item-actions">${actions}</div>
+            `;
+            
+            return div;
+        }
+        
+        function completeTask(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            if (task.isRecurring) {
+                // For recurring tasks, reset instead of marking as completed
+                tasksRef.child(taskId).update({
+                    lastCompletedAt: Date.now(),
+                    lastCompletedBy: currentUser.name,
+                    lastCompletedById: currentUser.id
+                }).then(() => {
+                    console.log('✅ משימה מחזורית הושלמה ואופסה');
+                    // Show notification
+                    showToast(`✅ ${task.title} בוצעה! המשימה תחזור ${task.recurringType === 'daily' ? 'מחר' : 'בשבוע הבא'}`);
+                }).finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+            } else {
+                // Regular task - mark as completed
+                tasksRef.child(taskId).update({
+                    status: 'completed',
+                    completedAt: Date.now(),
+                    completedBy: currentUser.name,
+                    completedById: currentUser.id
+                }).then(() => {
+                    console.log('✅ משימה הושלמה');
+                }).finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+            }
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 12px;
+                font-weight: 600;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                animation: slideUp 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideDown 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        function deleteTask(taskId) {
+            if (!currentUser.isAdmin) {
+                alert('❌ רק חגי וליאת יכולים למחוק משימות');
+                return;
+            }
+            
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            if (!confirm(`האם אתה בטוח שברצונך למחוק את המשימה "${task.title}"?`)) {
+                return;
+            }
+            
+            // Add to deletion history
+            const deletionEntry = {
+                type: 'task',
+                item: task.title,
+                deletedBy: currentUser.name,
+                deletedAt: new Date().toLocaleString('he-IL'),
+                originalItem: task
+            };
+            
+            const newHistory = [...deletionHistory, deletionEntry];
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            Promise.all([
+                deletionHistoryRef.set(newHistory),
+                tasksRef.child(taskId).remove()
+            ]).then(() => {
+                console.log('✅ משימה נמחקה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function togglePinTask(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            tasksRef.child(taskId).update({
+                isPinned: !task.isPinned
+            }).then(() => {
+                console.log('📌 הצמדה שונתה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function readTask(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            if (!('speechSynthesis' in window)) {
+                alert('הדפדפן לא תומך בהקראה. נסה להשתמש ב-Chrome או Edge.');
+                return;
+            }
+            
+            window.speechSynthesis.cancel();
+            
+            let speechText = `משימה: ${task.title}. `;
+            
+            if (task.description) {
+                speechText += `${task.description}. `;
+            }
+            
+            speechText += `אחראי: ${task.assignedToName}. `;
+            
+            if (task.dueDate) {
+                const dueDate = new Date(task.dueDate);
+                const formattedDate = dueDate.toLocaleDateString('he-IL');
+                speechText += `תאריך יעד: ${formattedDate}. `;
+            }
+            
+            const priorityText = {
+                high: 'עדיפות גבוהה',
+                medium: 'עדיפות רגילה',
+                low: 'עדיפות נמוכה'
+            };
+            speechText += priorityText[task.priority] + '. ';
+            
+            if (task.status === 'completed') {
+                speechText += `המשימה בוצעה על ידי ${task.completedBy}. `;
+            } else {
+                speechText += 'המשימה ממתינה לביצוע.';
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(speechText);
+            utterance.lang = 'he-IL';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            
+            const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+            const readButton = taskElement ? taskElement.querySelector('.read-btn') : null;
+            
+            if (readButton) {
+                readButton.classList.add('reading');
+            }
+            
+            utterance.onend = () => {
+                if (readButton) {
+                    readButton.classList.remove('reading');
+                }
+            };
+            
+            utterance.onerror = () => {
+                if (readButton) {
+                    readButton.classList.remove('reading');
+                }
+                alert('שגיאה בהקראת המשימה');
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        function filterTasks(filter, event) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            const tasksTab = document.getElementById('tasksTab');
+            tasksTab.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadTasks();
+        }
+        
+        function filterTasksBySearch() {
+            tasksSearchQuery = document.getElementById('tasksSearchInput').value.trim();
+            loadTasks();
+        }
+        
+        function filterByMember(memberId) {
+            // Switch to tasks tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[0].classList.add('active'); // First tab is tasks
+            
+            document.getElementById('tasksTab').classList.remove('hidden');
+            document.getElementById('shoppingTab').classList.add('hidden');
+            
+            // Set filter to pending
+            currentFilter = 'pending';
+            document.querySelectorAll('#tasksTab .filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#tasksTab .filter-btn')[0].classList.add('active'); // First filter is pending
+            
+            // Set search to member name
+            const member = familyMembers[memberId];
+            if (member) {
+                tasksSearchQuery = member.name;
+                const searchInput = document.getElementById('tasksSearchInput');
+                if (searchInput) {
+                    searchInput.value = member.name;
+                }
+                loadTasks();
+            }
+        }
+        
+        // ==================== NOTES ====================
+        
+        function openNotesModal(taskId) {
+            currentTaskForNotes = taskId;
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            const modal = document.getElementById('notesModal');
+            const notesList = document.getElementById('notesList');
+            const addNoteSection = document.getElementById('addNoteSection');
+            
+            // Check if user can add notes (only assigned user)
+            const canAddNote = task.assignedTo === currentUser.id;
+            addNoteSection.style.display = canAddNote ? 'block' : 'none';
+            
+            // Render existing notes
+            notesList.innerHTML = '';
+            if (task.notes && task.notes.length > 0) {
+                task.notes.forEach(note => {
+                    const noteEl = document.createElement('div');
+                    noteEl.className = 'note-item';
+                    noteEl.style.borderRightColor = note.authorColor || '#E0E0E0';
+                    
+                    const date = new Date(note.createdAt);
+                    noteEl.innerHTML = `
+                        <div class="note-header">
+                            <span class="note-author">
+                                ${note.authorIcon} ${note.authorName}
+                            </span>
+                            <span>${date.toLocaleDateString('he-IL')} ${date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div class="note-text">${note.text}</div>
+                    `;
+                    notesList.appendChild(noteEl);
+                });
+            } else {
+                notesList.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">אין הערות למשימה זו</div></div>';
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeNotesModal() {
+            document.getElementById('notesModal').classList.remove('active');
+            document.getElementById('newNoteText').value = '';
+            currentTaskForNotes = null;
+        }
+        
+        function addNote() {
+            const text = document.getElementById('newNoteText').value.trim();
+            if (!text) {
+                alert('❌ נא להזין תוכן להערה');
+                return;
+            }
+            
+            const task = tasks[currentTaskForNotes];
+            if (!task) return;
+            
+            if (task.assignedTo !== currentUser.id) {
+                alert('❌ רק מקבל המשימה יכול להוסיף הערות');
+                return;
+            }
+            
+            const note = {
+                text,
+                authorId: currentUser.id,
+                authorName: currentUser.name,
+                authorIcon: currentUser.icon,
+                authorColor: currentUser.color,
+                createdAt: Date.now()
+            };
+            
+            const notes = task.notes || [];
+            notes.push(note);
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            tasksRef.child(currentTaskForNotes).update({ notes })
+                .then(() => {
+                    console.log('✅ הערה נוספה');
+                    document.getElementById('newNoteText').value = '';
+                    openNotesModal(currentTaskForNotes); // Refresh
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+        }
+        
+        // ==================== SHOPPING ====================
+        
+        function quickAddItem(event) {
+            event.preventDefault();
+            
+            const itemName = document.getElementById('quickItemInput').value.trim();
+            if (!itemName) return;
+            
+            const itemId = 'item_' + Date.now();
+            
+            const item = {
+                id: itemId,
+                name: itemName,
+                addedBy: currentUser.name,
+                addedById: currentUser.id,
+                addedByIcon: currentUser.icon,
+                addedByColor: currentUser.color,
+                addedAt: Date.now(),
+                status: 'pending',
+                purchasedAt: null,
+                purchasedBy: null,
+                purchasedById: null,
+                isPinned: false
+            };
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).set(item)
+                .then(() => {
+                    console.log('✅ פריט נוסף');
+                    document.getElementById('quickItemInput').value = '';
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+        }
+        
+        function loadShopping() {
+            const container = document.getElementById('shoppingList');
+            container.innerHTML = '';
+            
+            let filteredItems = Object.values(shopping);
+            
+            // Apply search filter
+            if (shoppingSearchQuery) {
+                filteredItems = filteredItems.filter(item => 
+                    item.name.toLowerCase().includes(shoppingSearchQuery.toLowerCase())
+                );
+            }
+            
+            // Apply status filter
+            if (currentShoppingFilter === 'pending') {
+                filteredItems = filteredItems.filter(item => item.status === 'pending');
+            } else if (currentShoppingFilter === 'purchased') {
+                filteredItems = filteredItems.filter(item => item.status === 'purchased');
+            }
+            
+            // Sort: pinned first, then by status, then by date
+            filteredItems.sort((a, b) => {
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+                if (a.status === 'pending' && b.status === 'purchased') return -1;
+                if (a.status === 'purchased' && b.status === 'pending') return 1;
+                return b.addedAt - a.addedAt;
+            });
+            
+            if (filteredItems.length === 0) {
+                const emptyMessage = shoppingSearchQuery 
+                    ? `לא נמצאו תוצאות עבור "${shoppingSearchQuery}"`
+                    : 'אין פריטים להצגה';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🛒</div>
+                        <div class="empty-text">${emptyMessage}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredItems.forEach((item, index) => {
+                const itemEl = createShoppingElement(item, index);
+                container.appendChild(itemEl);
+            });
+        }
+        
+        function createShoppingElement(item, index) {
+            const div = document.createElement('div');
+            div.className = `item ${item.isPinned ? 'pinned' : ''} ${item.status === 'purchased' ? 'completed' : ''}`;
+            
+            const isAdmin = currentUser.isAdmin;
+            
+            let badges = '';
+            if (item.isPinned) {
+                badges += '<span class="badge badge-pinned">📌</span>';
+            }
+            
+            let meta = `<span class="user-chip" style="background-color: ${item.addedByColor}22; color: ${item.addedByColor}">${item.addedByIcon} ${item.addedBy}</span>`;
+            
+            const addedDate = new Date(item.addedAt);
+            meta += ` • 📅 ${addedDate.toLocaleDateString('he-IL')}`;
+            
+            if (item.status === 'purchased' && item.purchasedBy) {
+                const purchasedDate = new Date(item.purchasedAt);
+                meta += ` • ✓ ${item.purchasedBy}`;
+            }
+            
+            let actions = '';
+            
+            if (item.status === 'pending') {
+                if (isAdmin) {
+                    actions += `<button class="btn-icon btn-complete" onclick="purchaseItem('${item.id}')">✓</button>`;
+                }
+            } else if (item.status === 'purchased') {
+                actions += `<button class="btn-icon" onclick="unpurchaseItem('${item.id}')">↩️</button>`;
+            }
+            
+            if (isAdmin) {
+                actions += `<button class="btn-icon btn-delete" onclick="deleteShoppingItem('${item.id}')">🗑️</button>`;
+            }
+            
+            actions += `<button class="btn-icon btn-pin" onclick="togglePinShoppingItem('${item.id}')">${item.isPinned ? '📌' : '📌'}</button>`;
+            
+            div.innerHTML = `
+                <div class="item-number">${index + 1}.</div>
+                <div class="item-content">
+                    <div class="item-header">
+                        <div class="item-title">${item.name}</div>
+                        <div class="item-meta">${meta}</div>
+                    </div>
+                    ${badges ? `<div class="item-badges">${badges}</div>` : ''}
+                </div>
+                <div class="item-actions">${actions}</div>
+            `;
+            
+            return div;
+        }
+        
+        function purchaseItem(itemId) {
+            if (!currentUser.isAdmin) {
+                alert('❌ רק חגי וליאת יכולים לסמן פריטים כנקנו');
+                return;
+            }
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).update({
+                status: 'purchased',
+                purchasedAt: Date.now(),
+                purchasedBy: currentUser.name,
+                purchasedById: currentUser.id
+            }).then(() => {
+                console.log('✅ פריט סומן כנקנה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function unpurchaseItem(itemId) {
+            const item = shopping[itemId];
+            if (!item) return;
+            
+            if (!confirm(`האם להחזיר "${item.name}" לרשימת הקניות?`)) {
+                return;
+            }
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).update({
+                status: 'pending',
+                purchasedAt: null,
+                purchasedBy: null,
+                purchasedById: null
+            }).then(() => {
+                console.log('✅ פריט חזר לרשימה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function deleteShoppingItem(itemId) {
+            if (!currentUser.isAdmin) {
+                alert('❌ רק חגי וליאת יכולים למחוק פריטים');
+                return;
+            }
+            
+            const item = shopping[itemId];
+            if (!item) return;
+            
+            if (!confirm(`האם אתה בטוח שברצונך למחוק את "${item.name}"?`)) {
+                return;
+            }
+            
+            // Add to deletion history
+            const deletionEntry = {
+                type: 'shopping',
+                item: item.name,
+                deletedBy: currentUser.name,
+                deletedAt: new Date().toLocaleString('he-IL'),
+                originalItem: item
+            };
+            
+            const newHistory = [...deletionHistory, deletionEntry];
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            Promise.all([
+                deletionHistoryRef.set(newHistory),
+                shoppingRef.child(itemId).remove()
+            ]).then(() => {
+                console.log('✅ פריט נמחק');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function togglePinShoppingItem(itemId) {
+            const item = shopping[itemId];
+            if (!item) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).update({
+                isPinned: !item.isPinned
+            }).then(() => {
+                console.log('📌 הצמדה שונתה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function filterShopping(filter, event) {
+            currentShoppingFilter = filter;
+            
+            // Update filter buttons
+            const shoppingTab = document.getElementById('shoppingTab');
+            shoppingTab.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadShopping();
+        }
+        
+        function filterShoppingBySearch() {
+            shoppingSearchQuery = document.getElementById('shoppingSearchInput').value.trim();
+            loadShopping();
+        }
+        
+        // ==================== DELETION HISTORY ====================
+        
+        function openDeletionHistoryModal() {
+            const modal = document.getElementById('deletionHistoryModal');
+            const tbody = document.getElementById('deletionHistoryBody');
+            
+            tbody.innerHTML = '';
+            
+            if (deletionHistory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">אין פריטים במחיקות</td></tr>';
+            } else {
+                deletionHistory.forEach((entry, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const typeIcon = entry.type === 'task' ? '📋' : '🛒';
+                    const typeText = entry.type === 'task' ? 'משימה' : 'קנייה';
+                    
+                    const canRestore = currentUser.isAdmin;
+                    
+                    row.innerHTML = `
+                        <td>${typeIcon} ${typeText}</td>
+                        <td>${entry.item}</td>
+                        <td>${entry.deletedBy}</td>
+                        <td>${entry.deletedAt}</td>
+                        <td>
+                            ${canRestore ? `<button class="btn btn-secondary" onclick="restoreItem(${index})">↩️ שחזר</button>` : '—'}
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeDeletionHistoryModal() {
+            document.getElementById('deletionHistoryModal').classList.remove('active');
+        }
+        
+        function restoreItem(index) {
+            if (!currentUser.isAdmin) {
+                alert('❌ רק חגי וליאת יכולים לשחזר פריטים');
+                return;
+            }
+            
+            const entry = deletionHistory[index];
+            if (!entry) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            // Restore the item
+            const restorePromise = entry.type === 'task' 
+                ? tasksRef.child(entry.originalItem.id).set(entry.originalItem)
+                : shoppingRef.child(entry.originalItem.id).set(entry.originalItem);
+            
+            // Remove from deletion history
+            const newHistory = deletionHistory.filter((_, i) => i !== index);
+            
+            Promise.all([
+                restorePromise,
+                deletionHistoryRef.set(newHistory)
+            ]).then(() => {
+                console.log('✅ פריט שוחזר');
+                openDeletionHistoryModal(); // Refresh
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        function clearDeletionHistory() {
+            if (!confirm('האם אתה בטוח שברצונך לנקות את כל ההיסטוריה?')) {
+                return;
+            }
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            deletionHistoryRef.set([])
+                .then(() => {
+                    console.log('✅ היסטוריה נוקתה');
+                    closeDeletionHistoryModal();
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+        }
+        
+        // ==================== STATISTICS ====================
+        
+        function loadStats() {
+            const allTasks = Object.values(tasks);
+            const allShopping = Object.values(shopping);
+            
+            const hasTasks = allTasks.length > 0;
+            const hasShopping = allShopping.length > 0;
+            
+            // Create tabs structure
+            let statsHTML = `
+                <div class="stat-tabs">
+                    <button class="stat-tab active" onclick="switchStatTab('tasks-stat')">📋 משימות</button>
+                    <button class="stat-tab" onclick="switchStatTab('shopping-stat')">🛒 קניות</button>
+                </div>
+            `;
+            
+            // Tasks stats content
+            statsHTML += '<div id="tasks-stat" class="stat-content active">';
+            
+            if (hasTasks) {
+                // Count pending tasks per member
+                const memberTaskCounts = {};
+                Object.keys(familyMembers).forEach(memberId => {
+                    if (memberId !== 'everyone') {
+                        memberTaskCounts[memberId] = 0;
+                    }
+                });
+                
+                allTasks.forEach(task => {
+                    if (task.status === 'pending' && task.assignedTo) {
+                        if (memberTaskCounts[task.assignedTo] !== undefined) {
+                            memberTaskCounts[task.assignedTo]++;
+                        }
+                    }
+                });
+                
+                // Display each member with their pending tasks count
+                Object.entries(memberTaskCounts).forEach(([memberId, count]) => {
+                    const member = familyMembers[memberId];
+                    statsHTML += `
+                        <div class="member-stat" onclick="filterByMember('${memberId}')">
+                            <div class="member-info">
+                                <span class="member-icon">${member.icon}</span>
+                                <span class="member-name">${member.name}</span>
+                            </div>
+                            <div class="member-count ${count === 0 ? 'zero' : ''}" style="color: ${member.color}">
+                                ${count}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                statsHTML += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">אין עדיין משימות</p>';
+            }
+            
+            statsHTML += '</div>'; // Close tasks-stat
+            
+            // Shopping stats content
+            statsHTML += '<div id="shopping-stat" class="stat-content">';
+            
+            if (hasShopping) {
+                const totalItems = allShopping.length;
+                const purchasedItems = allShopping.filter(i => i.status === 'purchased').length;
+                const pendingItems = totalItems - purchasedItems;
+                
+                statsHTML += `
+                    <div class="shopping-stats">
+                        <div class="shopping-stat-box">
+                            <div class="shopping-stat-number pending">${pendingItems}</div>
+                            <div class="shopping-stat-label">צריך לקנות</div>
+                        </div>
+                        <div class="shopping-stat-box">
+                            <div class="shopping-stat-number purchased">${purchasedItems}</div>
+                            <div class="shopping-stat-label">נקנו</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statsHTML += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">אין עדיין פריטי קנייה</p>';
+            }
+            
+            statsHTML += '</div>'; // Close shopping-stat
+            
+            document.getElementById('statsContainer').innerHTML = statsHTML;
+            
+            // Update top performers (only shown to Hagai)
+            updateTopPerformers(hasTasks, hasShopping, allTasks, allShopping);
+        }
+        
+        function switchStatTab(tabId) {
+            // Update tab buttons
+            document.querySelectorAll('.stat-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.stat-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        function updateTopPerformers(hasTasks, hasShopping, allTasks, allShopping) {
+            // Top performers (for Hagai only)
+            const memberStats = {};
+            Object.keys(familyMembers).forEach(memberId => {
+                if (memberId !== 'everyone') {
+                    memberStats[memberId] = {
+                        tasksCompleted: 0,
+                        itemsAdded: 0,
+                        itemsPurchased: 0,
+                        total: 0
+                    };
+                }
+            });
+            
+            // Count completed tasks
+            if (hasTasks) {
+                allTasks.forEach(task => {
+                    if (task.status === 'completed' && task.completedById && memberStats[task.completedById]) {
+                        memberStats[task.completedById].tasksCompleted++;
+                        memberStats[task.completedById].total++;
+                    }
+                });
+            }
+            
+            // Count purchased items
+            if (hasShopping) {
+                allShopping.forEach(item => {
+                    if (item.status === 'purchased' && item.purchasedById && memberStats[item.purchasedById]) {
+                        memberStats[item.purchasedById].itemsPurchased++;
+                        memberStats[item.purchasedById].total++;
+                    }
+                });
+            }
+            
+            // Sort by total
+            const topPerformers = Object.entries(memberStats)
+                .map(([id, stats]) => ({ id, ...stats, ...familyMembers[id] }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 3);
+            
+            let performersHTML = '';
+            const medals = ['🥇', '🥈', '🥉'];
+            
+            topPerformers.forEach((performer, index) => {
+                if (performer.total === 0 && index > 0) return;
+                
+                performersHTML += `
+                    <div class="performer-item">
+                        <div class="performer-rank">${medals[index]}</div>
+                        <div class="performer-info">
+                            <div class="performer-name">${performer.icon} ${performer.name}</div>
+                            <div class="performer-points">${performer.total} פעולות השבוע</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (!performersHTML) {
+                performersHTML = '<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">עדיין אין נתונים השבוע</div></div>';
+            }
+            
+            const topPerformersEl = document.getElementById('topPerformers');
+            if (topPerformersEl) {
+                topPerformersEl.innerHTML = performersHTML;
+            }
+        }
+        
+        // ==================== BACKUP SYSTEM (Hagai only) ====================
+        
+        async function setupAutoBackup() {
+            if (!currentUser.canBackup) return;
+            
+            if (!('showDirectoryPicker' in window)) {
+                console.log('הדפדפן לא תומך בגיבוי אוטומטי');
+                return;
+            }
+            
+            // Check if this is first time
+            const autoBackupEnabled = localStorage.getItem('autoBackupEnabled');
+            
+            if (autoBackupEnabled === null) {
+                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.');
+                
+                if (confirmed) {
+                    localStorage.setItem('autoBackupEnabled', 'true');
+                    const success = await requestBackupDirectory();
+                    if (success) {
+                        await performBackup(true);
+                    }
+                } else {
+                    localStorage.setItem('autoBackupEnabled', 'false');
+                }
+            } else if (autoBackupEnabled === 'true') {
+                try {
+                    const savedHandle = await loadDirectoryHandle();
+                    
+                    if (savedHandle) {
+                        const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                        
+                        if (permission === 'granted') {
+                            backupDirectoryHandle = savedHandle;
+                            console.log('✅ נתיב גיבוי טעון מהזיכרון');
+                            await performBackup(true);
+                        } else {
+                            const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                            if (newPermission === 'granted') {
+                                backupDirectoryHandle = savedHandle;
+                                console.log('✅ הרשאת גיבוי חודשה');
+                                await performBackup(true);
+                            }
+                        }
+                    } else {
+                        console.log('⚠️ לא נמצא נתיב שמור');
+                        const success = await requestBackupDirectory();
+                        if (success) {
+                            await performBackup(true);
+                        }
+                    }
+                } catch (err) {
+                    console.log('שגיאה בטעינת נתיב גיבוי:', err);
+                }
+            }
+            
+            // Auto backup every 5 minutes
+            setInterval(() => {
+                if (backupDirectoryHandle) {
+                    performBackup(true);
+                }
+            }, 5 * 60 * 1000);
+            
+            // Auto backup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (backupDirectoryHandle) {
+                    performBackup(true);
+                }
+            });
+        }
+        
+        async function requestBackupDirectory() {
+            try {
+                backupDirectoryHandle = await window.showDirectoryPicker({
+                    mode: 'readwrite',
+                    startIn: 'documents'
+                });
+                
+                await saveDirectoryHandle(backupDirectoryHandle);
+                console.log('✅ נתיב גיבוי נשמר');
+                return true;
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('שגיאה בבחירת תיקייה:', err);
+                }
+                return false;
+            }
+        }
+        
+        async function performBackup(silent = true) {
+            if (!backupDirectoryHandle) {
+                if (!silent) console.log('אין נתיב גיבוי');
+                return false;
+            }
+            
+            try {
+                const permission = await backupDirectoryHandle.queryPermission({ mode: 'readwrite' });
+                if (permission !== 'granted') {
+                    const newPermission = await backupDirectoryHandle.requestPermission({ mode: 'readwrite' });
+                    if (newPermission !== 'granted') {
+                        console.log('אין הרשאה לתיקיית הגיבוי');
+                        return false;
+                    }
+                }
+                
+                const backupData = {
+                    timestamp: new Date().toISOString(),
+                    user: currentUser.name,
+                    tasks: tasks,
+                    shopping: shopping,
+                    deletionHistory: deletionHistory,
+                    version: '2.0'
+                };
+                
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+                const filename = `family-tasks-backup-${dateStr}-${timeStr}.json`;
+                
+                const fileHandle = await backupDirectoryHandle.getFileHandle(filename, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify(backupData, null, 2));
+                await writable.close();
+                
+                if (!silent) console.log('גיבוי בוצע בהצלחה:', filename);
+                return true;
+            } catch (err) {
+                console.error('שגיאה בגיבוי:', err);
+                return false;
+            }
+        }
+        
+        async function performManualBackup() {
+            const success = await performBackup(false);
+            if (success) {
+                alert('✅ הגיבוי בוצע בהצלחה!');
+            } else {
+                alert('❌ שגיאה בביצוע גיבוי');
+            }
+        }
+        
+        async function performRestore() {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'JSON Files',
+                        accept: { 'application/json': ['.json'] }
+                    }],
+                    multiple: false
+                });
+                
+                const file = await fileHandle.getFile();
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                if (!confirm('האם אתה בטוח שברצונך לשחזר גיבוי? פעולה זו תדרוס את הנתונים הנוכחיים!')) {
+                    return;
+                }
+                
+                isSyncing = true;
+                updateSyncStatus();
+                
+                await Promise.all([
+                    data.tasks ? tasksRef.set(data.tasks) : Promise.resolve(),
+                    data.shopping ? shoppingRef.set(data.shopping) : Promise.resolve(),
+                    data.deletionHistory ? deletionHistoryRef.set(data.deletionHistory) : Promise.resolve()
+                ]);
+                
+                alert('✅ הגיבוי שוחזר בהצלחה!');
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Restore error:', error);
+                    alert('❌ שגיאה בשחזור גיבוי');
+                }
+            } finally {
+                isSyncing = false;
+                updateSyncStatus();
+            }
+        }
+        
+        async function openBackupDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+            });
+        }
+        
+        async function saveDirectoryHandle(handle) {
+            try {
+                const db = await openBackupDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                store.put(handle, 'backupDirectory');
+                
+                return new Promise((resolve, reject) => {
+                    transaction.oncomplete = () => {
+                        db.close();
+                        resolve(true);
+                    };
+                    transaction.onerror = () => {
+                        db.close();
+                        reject(transaction.error);
+                    };
+                });
+            } catch (err) {
+                console.error('Error saving directory handle:', err);
+                return false;
+            }
+        }
+        
+        async function loadDirectoryHandle() {
+            try {
+                const db = await openBackupDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get('backupDirectory');
+                
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => {
+                        db.close();
+                        resolve(request.result);
+                    };
+                    request.onerror = () => {
+                        db.close();
+                        reject(request.error);
+                    };
+                });
+            } catch (err) {
+                console.error('Error loading directory handle:', err);
+                return null;
+            }
+        }
+    </script>
+</body>
+</html>
