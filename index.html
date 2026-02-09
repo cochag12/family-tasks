@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v4.0 (09/02/2026) - 🚀 Mobile First Revolution: Header דק (50px), FAB צף, "המשימות שלי" ברירת מחדל, עיצוב מודרני
     v3.4 (09/02/2026) - עיצוב סופר קומפקטי: שורה אחת דקה (גם משימות וגם קניות, כולל מובייל)
     v3.3 (09/02/2026) - עיצוב קומפקטי: שורות דקות לפריטי קנייה (שורה אחת עם כל המידע)
     v3.2 (09/02/2026) - תיקון באג: הסתרת כפתורי מחיקות/גיבוי/שחזור מכולם חוץ מחגי
@@ -22,13 +23,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v3.4 🔥</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v4.0 🚀</title>
     
     <!-- Version Info -->
-    <meta name="version" content="3.4">
+    <meta name="version" content="4.0">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="עיצוב סופר קומפקטי - שורה אחת דקה למשימות וקניות">
+    <meta name="changelog" content="Mobile First Design - Header דק, FAB, המשימות שלי">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -135,22 +136,85 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding-bottom: 100px;
             position: relative;
             z-index: 1;
         }
         
         /* Header */
         header {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 25px 35px;
-            box-shadow: var(--shadow-lg);
-            margin-bottom: 30px;
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .header-compact {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info-compact {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar-small {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+        }
+        
+        .user-details-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .user-name-small {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .user-role-small {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .header-actions-compact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sync-compact {
+            display: flex;
+            align-items: center;
+            padding: 4px;
+        }
+        
+        .btn-icon-only {
+            padding: 6px 10px;
+            border: none;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-icon-only:hover {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.05);
         }
         
         .header-left {
@@ -199,8 +263,8 @@
         }
         
         .sync-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
@@ -250,6 +314,36 @@
         .btn-logout:hover {
             background: var(--text-secondary);
             color: white;
+        }
+        
+        /* FAB - Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E91E63, #FF6B9D);
+            color: white;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 6px 24px rgba(233, 30, 99, 0.6);
+        }
+        
+        .fab:active {
+            transform: scale(0.95);
         }
         
         /* Tabs */
@@ -1262,37 +1356,36 @@
     <div id="mainApp" class="container hidden">
         <!-- Header -->
         <header>
-            <div class="header-left">
-                <div class="header-user">
-                    <div class="user-avatar" id="userAvatar"></div>
-                    <div class="user-info">
-                        <h1 id="userName"></h1>
-                        <p id="userRole"></p>
+            <div class="header-compact">
+                <div class="user-info-compact">
+                    <span class="user-avatar-small" id="userAvatar">👨</span>
+                    <div class="user-details-compact">
+                        <span class="user-name-small" id="userName">משתמש</span>
+                        <span class="user-role-small" id="userRole">תפקיד</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="header-right">
-                <div id="syncStatus">
-                    <span class="sync-dot" style="background: #FFA500;"></span>
-                    מתחבר...
+                
+                <div class="header-actions-compact">
+                    <div id="syncStatus" class="sync-compact">
+                        <span class="sync-dot" style="background: #FFA500;"></span>
+                    </div>
+                    
+                    <button class="btn-icon-only hidden" id="btnDeletionHistory" onclick="openDeletionHistoryModal()" title="מחיקות">
+                        🗑️
+                    </button>
+                    
+                    <button class="btn-icon-only hidden" id="btnBackup" onclick="performManualBackup()" title="גיבוי">
+                        💾
+                    </button>
+                    
+                    <button class="btn-icon-only hidden" id="btnRestore" onclick="performRestore()" title="שחזור">
+                        📥
+                    </button>
+                    
+                    <button class="btn-icon-only btn-logout" onclick="logout()" title="יציאה">
+                        🚪
+                    </button>
                 </div>
-                
-                <button class="btn btn-secondary hidden" id="btnDeletionHistory" onclick="openDeletionHistoryModal()">
-                    🗑️ מחיקות
-                </button>
-                
-                <button class="btn btn-secondary hidden" id="btnBackup" onclick="performManualBackup()">
-                    💾 גיבוי
-                </button>
-                
-                <button class="btn btn-secondary hidden" id="btnRestore" onclick="performRestore()">
-                    📥 שחזור
-                </button>
-                
-                <button class="btn btn-logout" onclick="logout()">
-                    🚪 יציאה
-                </button>
             </div>
         </header>
 
@@ -1314,13 +1407,6 @@
             <div class="main-content">
                 <!-- Tasks Tab -->
                 <div id="tasksTab" class="tab-content">
-                    <div class="card">
-                        <h3 class="card-title">➕ הוספת משימה</h3>
-                        <button class="btn btn-primary" onclick="openAddTaskModal()">
-                            ➕ הוסף משימה חדשה
-                        </button>
-                    </div>
-                    
                     <!-- Search Box -->
                     <div class="search-box">
                         <input type="text" class="search-input" id="tasksSearchInput" placeholder="🔍 חיפוש משימה..." oninput="filterTasksBySearch()">
@@ -1338,6 +1424,10 @@
                         <button class="filter-btn" onclick="filterTasks('personal', event)">
                             משימות עצמאיות
                             <span class="filter-count" id="personalTasksCount">0</span>
+                        </button>
+                        <button class="filter-btn" id="myTasksFilter" onclick="filterTasks('my-tasks', event)">
+                            המשימות שלי
+                            <span class="filter-count" id="myTasksCount">0</span>
                         </button>
                     </div>
 
@@ -1388,10 +1478,15 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 3.4 🔥
+                    גרסה 4.0 🔥
                 </div>
             </div>
         </div>
+        
+        <!-- FAB - Floating Action Button -->
+        <button class="fab" onclick="openFABModal()" title="הוסף פריט חדש">
+            ➕
+        </button>
     </div>
 
     <!-- Add Task Modal -->
@@ -1682,6 +1777,21 @@
                 document.getElementById('btnRestore').classList.add('hidden');
             }
             
+            // Set default filter based on user role
+            if (currentUser.isAdmin) {
+                // Admins see "pending" by default
+                currentFilter = 'pending';
+                document.querySelector('.filter-btn[onclick*="pending"]').classList.add('active');
+            } else {
+                // Regular users see "my tasks" by default
+                currentFilter = 'my-tasks';
+                const myTasksBtn = document.getElementById('myTasksFilter');
+                // Remove active from pending
+                document.querySelector('.filter-btn[onclick*="pending"]').classList.remove('active');
+                // Add active to my-tasks
+                myTasksBtn.classList.add('active');
+            }
+            
             // Setup Firebase listeners
             setupFirebaseListeners();
             
@@ -1842,6 +1952,23 @@
             event.currentTarget.classList.add('selected');
         }
         
+        // FAB - Smart modal opener based on active tab
+        function openFABModal() {
+            const tasksTab = document.getElementById('tasksTab');
+            const shoppingTab = document.getElementById('shoppingTab');
+            
+            if (!tasksTab.classList.contains('hidden')) {
+                // Tasks tab is active - open task modal
+                openAddTaskModal();
+            } else if (!shoppingTab.classList.contains('hidden')) {
+                // Shopping tab is active - open shopping modal
+                openAddShoppingModal();
+            } else {
+                // Default to task modal
+                openAddTaskModal();
+            }
+        }
+        
         function openAddTaskModal() {
             document.getElementById('addTaskModal').classList.add('active');
             
@@ -1984,6 +2111,9 @@
                     // Others see only their own personal tasks
                     return t.assignedTo === currentUser.id;
                 });
+            } else if (currentFilter === 'my-tasks') {
+                // Show only tasks assigned to me
+                filteredTasks = filteredTasks.filter(t => t.assignedTo === currentUser.id);
             }
             
             // Sort: pinned first, then by status, then by date
@@ -2005,9 +2135,11 @@
             });
             const pending = allTasks.filter(t => t.status === 'pending').length;
             const personal = allTasks.filter(t => t.isPersonal).length;
+            const myTasks = allTasks.filter(t => t.assignedTo === currentUser.id).length;
             
             document.getElementById('pendingTasksCount').textContent = pending;
             document.getElementById('personalTasksCount').textContent = personal;
+            document.getElementById('myTasksCount').textContent = myTasks;
             
             if (filteredTasks.length === 0) {
                 const emptyMessage = tasksSearchQuery 
