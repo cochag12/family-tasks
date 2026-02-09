@@ -3,6 +3,8 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
+    v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
     v5.3 (09/02/2026) - 👥 User Management: ניהול משתמשים מלא - הוסף, ערוך, מחק משתמשים!
     v5.2 (09/02/2026) - ⚡ Quick Add Task: קארד הוספת משימה מהירה חזר למסך! בחר אדם והוסף בקליק
     v5.1 (09/02/2026) - 📅 Google Calendar Integration: כפתור "הוסף ליומן" למשימות עם תאריך!
@@ -29,13 +31,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.3 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.5 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.3">
+    <meta name="version" content="5.5">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="User Management: ניהול משתמשים מלא - הוסף, ערוך, מחק! 👥">
+    <meta name="changelog" content="Bug Fixes: ניהול משתמשים עובד + Google Calendar משימה לשעה אחת! 🔧">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -166,6 +168,32 @@
         .user-role-small {
             font-size: 0.75rem;
             color: var(--text-secondary);
+        }
+        
+        /* Version Badges */
+        .version-badge-header {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 2px;
+        }
+        
+        .version-badge-login {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            z-index: 10;
         }
         
         .header-actions-compact {
@@ -1490,6 +1518,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
+        <div class="version-badge-login">v5.5</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1503,7 +1532,7 @@
     </div>
 
     <!-- User Management Modal -->
-    <div id="userManagementModal" class="modal">
+    <div id="userManagementModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">👥 ניהול משתמשים</h3>
@@ -1540,6 +1569,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
+                        <span class="version-badge-header">v5.5</span>
                     </div>
                 </div>
                 
@@ -2917,7 +2947,7 @@
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 const seconds = String(date.getSeconds()).padStart(2, '0');
-                return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+                return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
             };
             
             const startDateFormatted = formatDate(startDate);
