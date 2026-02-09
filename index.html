@@ -3,6 +3,9 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v5.3 (09/02/2026) - 👥 User Management: ניהול משתמשים מלא - הוסף, ערוך, מחק משתמשים!
+    v5.2 (09/02/2026) - ⚡ Quick Add Task: קארד הוספת משימה מהירה חזר למסך! בחר אדם והוסף בקליק
+    v5.1 (09/02/2026) - 📅 Google Calendar Integration: כפתור "הוסף ליומן" למשימות עם תאריך!
     v5.0 (09/02/2026) - 🌟 Bottom Nav Revolution: 3 מסכים נפרדים (📋🛒📊), Swipe גם למשימות, סטטיסטיקה נפרדת
     v4.2 (09/02/2026) - 👆 Swipe Perfect: ← נקנה, → ביטול (בלי אישור!), ↑ העלאה, ↓ הורדה
     v4.1 (09/02/2026) - 🎨 Professional Design: עיצוב נקי, Swipe Actions (←→↑), ניהול משתמשים, רשומה נקנתה עם קו
@@ -26,13 +29,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.0 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.3 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.0">
+    <meta name="version" content="5.3">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Bottom Nav Revolution: 3 מסכים נפרדים, Swipe למשימות, סטטיסטיקה נפרדת">
+    <meta name="changelog" content="User Management: ניהול משתמשים מלא - הוסף, ערוך, מחק! 👥">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -718,6 +721,16 @@
             color: #1565C0;
         }
         
+        .btn-calendar {
+            background: #FFF9C4;
+            color: #F57C00;
+        }
+        
+        .btn-calendar:hover {
+            background: #FFF59D;
+            box-shadow: 0 2px 8px rgba(245, 124, 0, 0.3);
+        }
+        
         .btn-read {
             background: #F3E5F5;
             color: #7B1FA2;
@@ -1359,6 +1372,54 @@
             color: #2196F3;
         }
         
+        /* User List in Modal */
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--bg-light);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .user-item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-item-icon {
+            font-size: 1.8rem;
+        }
+        
+        .user-item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .user-item-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .user-item-role {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .user-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .user-item .btn-icon {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .main-layout {
@@ -1435,9 +1496,37 @@
         
         <!-- User Management -->
         <div class="user-management">
-            <button class="btn-manage" onclick="openAddUserModal()">
-                ➕ הוסף משתמש
+            <button class="btn-manage" onclick="openUserManagementModal()">
+                👥 ניהול משתמשים
             </button>
+        </div>
+    </div>
+
+    <!-- User Management Modal -->
+    <div id="userManagementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">👥 ניהול משתמשים</h3>
+                <button class="modal-close" onclick="closeUserManagementModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Current Users -->
+                <h4 style="margin-bottom: 15px; color: var(--text-primary);">👨‍👩‍👧‍👦 משתמשים קיימים:</h4>
+                <div id="currentUsersList" style="margin-bottom: 25px;"></div>
+                
+                <!-- Add New User -->
+                <h4 style="margin-bottom: 15px; color: var(--text-primary);">➕ הוסף משתמש חדש:</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="text" id="newUserName" class="form-input" placeholder="שם המשתמש...">
+                    <input type="text" id="newUserIcon" class="form-input" placeholder="אימוג'י (לדוגמה: 👶)" maxlength="2">
+                    <select id="newUserRole" class="form-input">
+                        <option value="child">ילד/ה</option>
+                        <option value="admin">מנהל/ת</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addNewUser()">➕ הוסף משתמש</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1483,7 +1572,19 @@
             <!-- Main Content -->
             <div class="main-content">
                 <!-- Tasks Tab -->
-                <div id="tasksTab" class="tab-content">
+                <div id="tasksTab" class="tab-content hidden">
+                    <!-- Quick Add Task Card -->
+                    <div class="card">
+                        <h3 class="card-title">➕ הוסף משימה מהר</h3>
+                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="margin-bottom: 15px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                        
+                        <div class="assignee-grid" id="quickAssigneeGrid"></div>
+                        
+                        <button class="btn btn-primary" onclick="addQuickTask()" style="width: 100%; margin-top: 15px;">
+                            ➕ הוסף משימה
+                        </button>
+                    </div>
+                    
                     <!-- Search Box -->
                     <div class="search-box">
                         <input type="text" class="search-input" id="tasksSearchInput" placeholder="🔍 חיפוש משימה..." oninput="filterTasksBySearch()">
@@ -1513,7 +1614,7 @@
                 </div>
 
                 <!-- Shopping Tab -->
-                <div id="shoppingTab" class="tab-content hidden">
+                <div id="shoppingTab" class="tab-content">
                     <div class="card">
                         <h3 class="card-title">➕ הוספת פריט</h3>
                         <form class="quick-add" onsubmit="quickAddItem(event)">
@@ -1563,15 +1664,15 @@
         
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="switchScreen('tasks')" id="navTasks">
-                <span class="nav-badge" id="navTasksBadge">0</span>
-                <div class="nav-icon">📋</div>
-                <div class="nav-label">משימות</div>
-            </button>
-            <button class="nav-item" onclick="switchScreen('shopping')" id="navShopping">
+            <button class="nav-item active" onclick="switchScreen('shopping')" id="navShopping">
                 <span class="nav-badge" id="navShoppingBadge">0</span>
                 <div class="nav-icon">🛒</div>
                 <div class="nav-label">קניות</div>
+            </button>
+            <button class="nav-item" onclick="switchScreen('tasks')" id="navTasks">
+                <span class="nav-badge" id="navTasksBadge">0</span>
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">משימות</div>
             </button>
             <button class="nav-item" onclick="switchScreen('stats')" id="navStats">
                 <div class="nav-icon">📊</div>
@@ -1728,13 +1829,19 @@
         // ==================== GLOBAL VARIABLES ====================
         
         // Family members
-        const familyMembers = {
+        // Family Members - Load from localStorage or use defaults
+        let familyMembers = JSON.parse(localStorage.getItem('familyMembers')) || {
             liat: { id: 'liat', name: 'ליאת', icon: '👩', color: '#E91E63', role: 'מנהלת', isAdmin: true },
             hagai: { id: 'hagai', name: 'חגי', icon: '👨', color: '#2196F3', role: 'מנהל', isAdmin: true, canBackup: true },
             maya: { id: 'maya', name: 'מיה', icon: '👧', color: '#00BCD4', role: 'משתמשת' },
             ariel: { id: 'ariel', name: 'אריאל', icon: '🧒', color: '#4CAF50', role: 'משתמש' },
             ann: { id: 'ann', name: 'אן', icon: '👧', color: '#FF9800', role: 'משתמשת', canSpeak: true }
         };
+        
+        // Save default familyMembers if not exists
+        if (!localStorage.getItem('familyMembers')) {
+            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
+        }
         
         // Current state
         let currentUser = null;
@@ -1830,8 +1937,165 @@
             showMainApp();
         }
         
-        function openAddUserModal() {
-            alert('🚧 תכונת ניהול משתמשים תתווסף בגרסה הבאה!\n\nבינתיים, ניתן להוסיף משתמשים דרך קוד JavaScript.');
+        // User Management Modal
+        function openUserManagementModal() {
+            document.getElementById('userManagementModal').classList.remove('hidden');
+            loadCurrentUsers();
+        }
+        
+        function closeUserManagementModal() {
+            document.getElementById('userManagementModal').classList.add('hidden');
+            // Clear inputs
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserIcon').value = '';
+            document.getElementById('newUserRole').value = 'child';
+        }
+        
+        function loadCurrentUsers() {
+            const container = document.getElementById('currentUsersList');
+            container.innerHTML = '';
+            
+            Object.values(familyMembers).forEach(member => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                const roleText = member.isAdmin ? '👑 מנהל/ת' : '👶 ילד/ה';
+                
+                userItem.innerHTML = `
+                    <div class="user-item-info">
+                        <div class="user-item-icon">${member.icon}</div>
+                        <div class="user-item-details">
+                            <div class="user-item-name">${member.name}</div>
+                            <div class="user-item-role">${roleText}</div>
+                        </div>
+                    </div>
+                    <div class="user-item-actions">
+                        <button class="btn-icon" style="background: #FFF3E0; color: #F57C00;" onclick="editUser('${member.id}')">✏️</button>
+                        <button class="btn-icon btn-delete" onclick="deleteUser('${member.id}')">🗑️</button>
+                    </div>
+                `;
+                
+                container.appendChild(userItem);
+            });
+        }
+        
+        function addNewUser() {
+            const name = document.getElementById('newUserName').value.trim();
+            const icon = document.getElementById('newUserIcon').value.trim();
+            const role = document.getElementById('newUserRole').value;
+            
+            if (!name) {
+                alert('❌ נא להזין שם משתמש');
+                return;
+            }
+            
+            if (!icon) {
+                alert('❌ נא להזין אימוג\'י');
+                return;
+            }
+            
+            // Check if name already exists
+            const nameExists = Object.values(familyMembers).some(m => m.name === name);
+            if (nameExists) {
+                alert('❌ שם משתמש כבר קיים');
+                return;
+            }
+            
+            const userId = name.toLowerCase().replace(/\s/g, '');
+            const isAdmin = role === 'admin';
+            
+            const colors = ['#E91E63', '#9C27B0', '#3F51B5', '#00BCD4', '#4CAF50', '#FF9800', '#795548'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            const newUser = {
+                id: userId,
+                name: name,
+                icon: icon,
+                role: isAdmin ? 'מנהל/ת' : 'ילד/ה',
+                color: randomColor,
+                isAdmin: isAdmin,
+                canSpeak: false
+            };
+            
+            // Add to familyMembers
+            familyMembers[userId] = newUser;
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
+            
+            // Clear inputs
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserIcon').value = '';
+            document.getElementById('newUserRole').value = 'child';
+            
+            // Reload list
+            loadCurrentUsers();
+            
+            // Update login grid
+            renderLoginCards();
+            
+            showToast(`✅ ${name} נוסף/ה בהצלחה!`);
+        }
+        
+        function editUser(userId) {
+            const user = familyMembers[userId];
+            if (!user) return;
+            
+            const newName = prompt(`✏️ שם חדש עבור ${user.name}:`, user.name);
+            if (!newName || newName.trim() === '') return;
+            
+            const newIcon = prompt(`✏️ אימוג'י חדש עבור ${user.name}:`, user.icon);
+            if (!newIcon || newIcon.trim() === '') return;
+            
+            // Update user
+            familyMembers[userId].name = newName.trim();
+            familyMembers[userId].icon = newIcon.trim();
+            
+            // Save to localStorage
+            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
+            
+            // Reload
+            loadCurrentUsers();
+            renderLoginCards();
+            
+            showToast(`✅ ${newName} עודכן/ה בהצלחה!`);
+        }
+        
+        function deleteUser(userId) {
+            const user = familyMembers[userId];
+            if (!user) return;
+            
+            // Prevent deletion of admins
+            if (user.isAdmin) {
+                alert('❌ לא ניתן למחוק מנהלים (חגי וליאת)');
+                return;
+            }
+            
+            if (!confirm(`🗑️ האם למחוק את ${user.name}?\n\n⚠️ זה ימחק גם את כל המשימות המוקצות לו/לה!`)) {
+                return;
+            }
+            
+            // Delete from familyMembers
+            delete familyMembers[userId];
+            
+            // Save to localStorage
+            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
+            
+            // Delete all tasks assigned to this user
+            tasksRef.once('value', (snapshot) => {
+                const tasksData = snapshot.val() || {};
+                Object.keys(tasksData).forEach(taskId => {
+                    if (tasksData[taskId].assignedTo === userId) {
+                        tasksRef.child(taskId).remove();
+                    }
+                });
+            });
+            
+            // Reload
+            loadCurrentUsers();
+            renderLoginCards();
+            
+            showToast(`🗑️ ${user.name} נמחק/ה בהצלחה`);
         }
         
         function showMainApp() {
@@ -1895,6 +2159,7 @@
             
             // Populate assignee grid
             populateAssigneeGrid();
+            populateQuickAssigneeGrid();
         }
         
         function logout() {
@@ -2059,6 +2324,99 @@
             // Update UI
             document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
+        }
+        
+        // Quick Assignee Grid for Quick Add
+        let quickSelectedAssignee = null;
+        
+        function populateQuickAssigneeGrid() {
+            const grid = document.getElementById('quickAssigneeGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            Object.values(familyMembers).forEach(member => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'assignee-btn';
+                btn.style.color = member.color;
+                btn.onclick = (e) => selectQuickAssignee(member.id, e);
+                
+                btn.innerHTML = `
+                    <div class="assignee-icon">${member.icon}</div>
+                    <div class="assignee-name">${member.name}</div>
+                `;
+                
+                grid.appendChild(btn);
+            });
+        }
+        
+        function selectQuickAssignee(memberId, event) {
+            quickSelectedAssignee = memberId;
+            
+            // Update UI
+            const grid = document.getElementById('quickAssigneeGrid');
+            grid.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+        
+        function addQuickTask() {
+            const input = document.getElementById('quickTaskInput');
+            const taskName = input.value.trim();
+            
+            if (!taskName) {
+                alert('❌ נא להזין שם משימה');
+                return;
+            }
+            
+            if (!quickSelectedAssignee) {
+                alert('❌ נא לבחור למי להקצות את המשימה');
+                return;
+            }
+            
+            const assignee = familyMembers[quickSelectedAssignee];
+            
+            const newTask = {
+                id: 'task_' + Date.now(),
+                title: taskName,
+                description: '',
+                assignedTo: assignee.id,
+                assignedToName: assignee.name,
+                assignedToIcon: assignee.icon,
+                assignedToColor: assignee.color,
+                priority: 'medium',
+                status: 'pending',
+                createdAt: Date.now(),
+                createdBy: currentUser.name,
+                createdById: currentUser.id,
+                isPinned: false,
+                isPersonal: false,
+                isRecurring: false,
+                dueDate: null
+            };
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            tasksRef.child(newTask.id).set(newTask)
+                .then(() => {
+                    input.value = '';
+                    quickSelectedAssignee = null;
+                    
+                    // Reset selection
+                    const grid = document.getElementById('quickAssigneeGrid');
+                    grid.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
+                    
+                    showToast(`✅ משימה נוספה ל-${assignee.name}!`);
+                })
+                .catch(error => {
+                    console.error('Error adding task:', error);
+                    alert('❌ שגיאה בהוספת המשימה');
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
         }
         
         // FAB - Smart modal opener based on active tab
@@ -2286,6 +2644,30 @@
             
             const dueDate = task.dueDate ? new Date(task.dueDate) : null;
             
+            // Build action buttons
+            let actions = '';
+            
+            if (task.status === 'pending') {
+                actions += `<button class="btn-icon btn-complete" onclick="completeTask('${task.id}')">✓</button>`;
+            }
+            
+            if (isAdmin) {
+                actions += `<button class="btn-icon btn-delete" onclick="deleteTask('${task.id}')">🗑️</button>`;
+            }
+            
+            actions += `<button class="btn-icon btn-pin" onclick="togglePinTask('${task.id}')">${task.isPinned ? '📌' : '📌'}</button>`;
+            
+            const notesCount = task.notes ? task.notes.length : 0;
+            actions += `<button class="btn-icon btn-notes" onclick="openNotesModal('${task.id}')">
+                ${notesCount > 0 ? `<span class="note-badge">${notesCount}</span>` : ''}
+                💬
+            </button>`;
+            
+            // Add to Calendar button (only if task has due date)
+            if (task.dueDate) {
+                actions += `<button class="btn-icon btn-calendar" onclick="addToCalendar('${task.id}')" title="הוסף ליומן">📅</button>`;
+            }
+            
             div.innerHTML = `
                 <div class="swipe-indicator left">✓</div>
                 <div class="swipe-indicator right">↩️</div>
@@ -2295,6 +2677,7 @@
                 <div class="item-content">
                     ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${priority.emoji} • ${task.assignedToIcon} ${task.assignedToName}${dueDate ? ` • 📅 ${dueDate.toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
                 </div>
+                <div class="item-actions">${actions}</div>
             `;
             
             // Add touch handlers for swipe
@@ -2500,6 +2883,63 @@
                 toast.style.animation = 'slideDown 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+        
+        function addToCalendar(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            if (!task.dueDate) {
+                alert('❌ למשימה אין תאריך יעד');
+                return;
+            }
+            
+            // Format task details for Google Calendar
+            const title = task.title;
+            const description = task.description || '';
+            const priority = task.priority === 'high' ? '🔴 עדיפות גבוהה' : task.priority === 'medium' ? '🟡 עדיפות רגילה' : '🟢 עדיפות נמוכה';
+            const assignedTo = `מוקצה ל: ${task.assignedToName}`;
+            
+            const fullDescription = `${description}\n\n${priority}\n${assignedTo}`;
+            
+            // Format date for Google Calendar (YYYYMMDDTHHMMSS format)
+            const dueDate = new Date(task.dueDate);
+            const startDate = new Date(dueDate);
+            startDate.setHours(9, 0, 0); // Set to 9:00 AM
+            
+            const endDate = new Date(dueDate);
+            endDate.setHours(10, 0, 0); // Set to 10:00 AM (1 hour duration)
+            
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+            };
+            
+            const startDateFormatted = formatDate(startDate);
+            const endDateFormatted = formatDate(endDate);
+            
+            // Build Google Calendar URL
+            const baseUrl = 'https://calendar.google.com/calendar/render';
+            const params = new URLSearchParams({
+                action: 'TEMPLATE',
+                text: title,
+                dates: `${startDateFormatted}/${endDateFormatted}`,
+                details: fullDescription,
+                location: '',
+                trp: 'false'
+            });
+            
+            const calendarUrl = `${baseUrl}?${params.toString()}`;
+            
+            // Open in new window
+            window.open(calendarUrl, '_blank');
+            
+            showToast('📅 נפתח Google Calendar!');
         }
         
         function deleteTask(taskId) {
@@ -3409,12 +3849,8 @@
         async function setupAutoBackup() {
             if (!currentUser.canBackup) return;
             
-            // Check if mobile device - disable auto backup on mobile
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                console.log('📱 מכשיר נייד - גיבוי אוטומטי מושבת');
-                return;
-            }
+            // Allow backup on all devices (including mobile)
+            console.log('✅ מערכת גיבוי זמינה');
             
             if (!('showDirectoryPicker' in window)) {
                 console.log('הדפדפן לא תומך בגיבוי אוטומטי');
@@ -3425,7 +3861,7 @@
             const autoBackupEnabled = localStorage.getItem('autoBackupEnabled');
             
             if (autoBackupEnabled === null) {
-                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.');
+                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.\n\n📱 עובד גם בנייד!');
                 
                 if (confirmed) {
                     localStorage.setItem('autoBackupEnabled', 'true');
@@ -3522,20 +3958,36 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '2.0'
+                    version: '5.1'
                 };
                 
+                // Daily backup - one file per day (overwrites previous)
                 const now = new Date();
-                const dateStr = now.toISOString().split('T')[0];
-                const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-                const filename = `family-tasks-backup-${dateStr}-${timeStr}.json`;
+                const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+                const todayFilename = `family-tasks-backup-${dateStr}.json`;
                 
-                const fileHandle = await backupDirectoryHandle.getFileHandle(filename, { create: true });
+                // Get yesterday's date for cleanup
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayDateStr = yesterday.toISOString().split('T')[0];
+                const yesterdayFilename = `family-tasks-backup-${yesterdayDateStr}.json`;
+                
+                try {
+                    // Delete yesterday's backup if exists
+                    const yesterdayHandle = await backupDirectoryHandle.getFileHandle(yesterdayFilename);
+                    await backupDirectoryHandle.removeEntry(yesterdayFilename);
+                    console.log(`🗑️ מחק גיבוי של אתמול: ${yesterdayFilename}`);
+                } catch (err) {
+                    // File doesn't exist, that's ok
+                }
+                
+                // Create/overwrite today's backup
+                const fileHandle = await backupDirectoryHandle.getFileHandle(todayFilename, { create: true });
                 const writable = await fileHandle.createWritable();
                 await writable.write(JSON.stringify(backupData, null, 2));
                 await writable.close();
                 
-                if (!silent) console.log('גיבוי בוצע בהצלחה:', filename);
+                if (!silent) console.log('✅ גיבוי בוצע בהצלחה:', todayFilename);
                 return true;
             } catch (err) {
                 console.error('שגיאה בגיבוי:', err);
