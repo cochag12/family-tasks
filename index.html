@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <!--
-    משימות משפחתיות - משפחת חגי וליאת
+    LOBALI - Elite Procrastination Management v8.0
+    "Because staring at a list is almost like doing it."
     
     היסטוריית גרסאות:
+    v8.0 (09/02/2026) - 🎨 PURPLE REBRANDING: עיצוב כהה מלא, לוגו L סגול, LOBALI Elite, Glass morphism!
+    v7.0 (09/02/2026) - 🎨 REBRANDING: "לא בא לי / LoBaLi" - שם חדש, עיצוב חדש, אותה אפליקציה מעולה!
     v6.2 (09/02/2026) - 🔧 Polish: פרופורציות 60/40 (input/כפתור), תיקון גיבוי בנייד עם בדיקות!
     v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
     v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים, responsive!
@@ -35,13 +38,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v6.2 🌟</title>
+    <title>LOBALI | Elite Procrastination Management v8.0</title>
     
     <!-- Version Info -->
-    <meta name="version" content="6.2">
+    <meta name="version" content="8.0">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Polish: פרופורציות 60/40 (input 60%, כפתור 40%), תיקון גיבוי בנייד עם בדיקות! 🔧">
+    <meta name="changelog" content="PURPLE REBRANDING: עיצוב כהה מלא, לוגו L סגול, Elite Procrastination Management! 💜✨">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -51,28 +54,37 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&family=Varela+Round&family=Alef:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            --brand-dark: #0A0A0B;    /* Obsidian */
+            --brand-accent: #6366F1;  /* Electric Indigo */
+            --brand-gold: #D4AF37;    /* Sarcastic Gold */
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --radius-xl: 24px;
+            
+            /* User Colors (keeping for compatibility) */
             --color-liat: #E91E63;
             --color-hagai: #2196F3;
             --color-maya: #00BCD4;
             --color-ariel: #4CAF50;
             --color-ann: #FF9800;
             
-            --bg-main: #F5F5F5;
-            --bg-card: #FFFFFF;
-            --text-primary: #212121;
-            --text-secondary: #757575;
-            --border-color: #E0E0E0;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-            --shadow-md: 0 2px 6px rgba(0,0,0,0.15);
-            --shadow-lg: 0 4px 12px rgba(0,0,0,0.18);
+            /* Additional needed variables */
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --shadow-sm: 0 10px 30px rgba(0,0,0,0.3);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.3);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.5);
             
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
+            --radius-sm: 12px;
+            --radius-md: 18px;
+            --radius-lg: 24px;
         }
         
         * {
@@ -82,13 +94,14 @@
         }
         
         body {
-            font-family: 'Rubik', sans-serif;
-            background: var(--bg-main);
-            color: var(--text-primary);
+            font-family: 'Inter', 'Rubik', sans-serif;
+            background: var(--brand-dark);
+            color: var(--text-main);
             min-height: 100vh;
             padding: 0;
             position: relative;
             overflow-x: hidden;
+            line-height: 1.6;
         }
             z-index: 0;
             animation: float 20s ease-in-out infinite;
@@ -127,16 +140,29 @@
         
         /* Header */
         header {
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
-            padding: 8px 15px;
+            background: rgba(10, 10, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 24px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .app-name {
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            font-size: 1.2rem;
+            color: var(--text-main);
         }
         
         .header-compact {
@@ -149,54 +175,61 @@
         .user-info-compact {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            background: var(--bg-glass);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
         .user-avatar-small {
-            font-size: 1.5rem;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+            font-size: 1.3rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
         
         .user-details-compact {
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 2px;
         }
         
         .user-name-small {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--text-main);
         }
         
         .user-role-small {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
+            font-size: 0.65rem;
+            color: var(--text-muted);
         }
         
         /* Version Badges */
         .version-badge-header {
             display: inline-block;
             font-size: 0.65rem;
-            font-weight: 600;
+            font-weight: 700;
             color: white;
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            padding: 2px 8px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            padding: 3px 10px;
+            border-radius: 12px;
             margin-top: 2px;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
         
         .version-badge-login {
             position: absolute;
             top: 20px;
             left: 20px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 700;
             color: white;
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            padding: 6px 12px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            padding: 6px 14px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
             z-index: 10;
         }
         
@@ -213,13 +246,19 @@
         }
         
         .btn-icon-only {
-            padding: 6px 10px;
+            padding: 8px 12px;
             border: none;
             background: rgba(0,0,0,0.05);
             border-radius: 8px;
             cursor: pointer;
             font-size: 1.1rem;
             transition: all 0.2s;
+            color: var(--text-muted);
+        }
+        
+        .btn-icon-only:hover {
+            background: rgba(255,255,255,0.1);
+            filter: brightness(1.2);
         }
         
         .btn-icon-only:hover {
@@ -285,72 +324,71 @@
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: var(--radius-sm);
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
             font-size: 0.95rem;
-            font-family: 'Rubik', sans-serif;
+            font-family: 'Inter', 'Rubik', sans-serif;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #E91E63, #FF6B9D);
+            background: var(--brand-accent);
             color: white;
-            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
         }
         
         .btn-primary:hover {
+            filter: brightness(1.2);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
         }
         
         .btn-secondary {
             background: rgba(0,0,0,0.05);
-            color: var(--text-primary);
+            color: var(--text-main);
         }
         
         .btn-secondary:hover {
-            background: rgba(0,0,0,0.08);
+            background: rgba(0,0,0,0.1);
         }
         
         .btn-logout {
             background: transparent;
-            color: var(--text-secondary);
-            border: 2px solid currentColor;
+            color: var(--text-muted);
+            border: 2px solid var(--border-color);
         }
         
         .btn-logout:hover {
-            background: var(--text-secondary);
-            color: white;
+            background: var(--bg-glass);
+            color: var(--brand-accent);
         }
         
         /* FAB - Floating Action Button */
         .fab {
             position: fixed;
-            bottom: 24px;
+            bottom: 100px;
             left: 24px;
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: #2196F3;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: all 0.2s;
-            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 900;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
         .fab:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-            background: #1976D2;
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+            filter: brightness(1.1);
         }
         
         .fab:active {
@@ -361,16 +399,20 @@
         /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid var(--border-color);
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            background: rgba(22, 24, 28, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
             display: flex;
             justify-content: space-around;
-            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            padding: 10px;
             z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
         
         .nav-item {
@@ -379,13 +421,14 @@
             flex-direction: column;
             align-items: center;
             gap: 4px;
-            padding: 8px;
+            padding: 10px 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
             position: relative;
             border: none;
             background: none;
-            color: var(--text-secondary);
+            color: var(--text-muted);
+            border-radius: 16px;
         }
         
         .nav-item:active {
@@ -393,41 +436,44 @@
         }
         
         .nav-item.active {
-            color: #2196F3;
+            color: white;
         }
         
         .nav-icon {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             transition: transform 0.2s;
         }
         
         .nav-item.active .nav-icon {
-            transform: scale(1.1);
+            transform: scale(1.15);
         }
         
         .nav-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            font-family: 'Rubik', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'Inter', 'Rubik', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .nav-badge {
             position: absolute;
-            top: 4px;
+            top: 6px;
             right: 20%;
-            background: #E91E63;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 10px;
             min-width: 18px;
             text-align: center;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
         
         /* Main Layout */
         .main-layout {
-            padding-bottom: 80px;
+            padding-bottom: 120px;
         }
         
         @media (max-width: 1024px) {
@@ -439,7 +485,9 @@
         /* Cards */
         .card {
             background: var(--bg-card);
-            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
             padding: 30px;
             box-shadow: var(--shadow-md);
             margin-bottom: 25px;
@@ -452,6 +500,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            color: var(--text-primary);
         }
         
         /* Filters */
@@ -504,23 +553,24 @@
         
         /* Task/Shopping Item */
         .item {
-            background: white;
-            border-radius: var(--radius-sm);
-            padding: 12px 15px;
-            margin-bottom: 10px;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 12px;
             transition: transform 0.3s, box-shadow 0.3s;
             position: relative;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.9rem;
             touch-action: pan-y;
             user-select: none;
         }
         
         .item:active {
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
         }
         
         .item.swiping {
@@ -528,50 +578,54 @@
         }
         
         .item.swipe-left {
-            background: #E8F5E9;
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
         }
         
         .item.swipe-right {
-            background: #FFF3E0;
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
         }
         
         .item.swipe-up {
-            background: #E3F2FD;
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
         }
         
         .item.swipe-down {
-            background: #FFF9C4;
+            background: rgba(234, 179, 8, 0.1);
+            border-color: rgba(234, 179, 8, 0.3);
         }
         
         .item.pinned {
-            border-left: 4px solid #E91E63;
-            background: #FFF0F5;
+            border-left: 4px solid var(--brand-accent);
+            background: rgba(102, 126, 234, 0.05);
         }
         
         .item.completed {
-            opacity: 0.6;
-            background: #F5F5F5;
+            opacity: 0.5;
+            background: rgba(255, 255, 255, 0.02);
         }
         
         .item.completed .item-content {
             text-decoration: line-through;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
         
         /* Personal Tasks - Different color */
         .item.personal-task {
-            background: linear-gradient(to right, #FFF9E6 0%, #FFFEF8 100%);
-            border-left: 3px solid #FF9800;
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 3px solid #F59E0B;
         }
         
         .item.purchased {
-            opacity: 0.5;
-            background: #FAFAFA;
+            opacity: 0.4;
+            background: rgba(255, 255, 255, 0.02);
         }
         
         .item.purchased .item-content {
             text-decoration: line-through;
-            color: #9E9E9E;
+            color: var(--text-muted);
         }
         
         .swipe-indicator {
@@ -922,8 +976,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -936,6 +990,8 @@
         
         .modal-content {
             background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: 35px;
             max-width: 700px;
@@ -967,6 +1023,7 @@
         .modal-title {
             font-size: 1.6rem;
             font-weight: 700;
+            color: var(--text-primary);
         }
         
         .modal-close {
@@ -974,7 +1031,8 @@
             height: 40px;
             border-radius: 50%;
             border: none;
-            background: rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 1.3rem;
             transition: all 0.3s;
@@ -984,7 +1042,7 @@
         }
         
         .modal-close:hover {
-            background: rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.1);
             transform: rotate(90deg);
         }
         
@@ -1309,106 +1367,152 @@
         }
         
         /* Login Screen */
+        /* Login Screen - v6.6 Design */
         .login-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            padding: 40px 20px;
+            background: radial-gradient(circle at center, #1E1E2D 0%, #0A0A0B 100%);
         }
         
-        .login-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 15px;
+        .brand-header {
             text-align: center;
-            background: linear-gradient(135deg, #E91E63, #FF9800);
+            margin-bottom: 60px;
+        }
+        
+        .logo-monogram {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+        
+        .brand-name {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to bottom, #fff 0%, #64748B 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .login-subtitle {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
+        .brand-slogan {
+            font-size: 0.9rem;
+            color: var(--brand-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            margin-top: -10px;
+            font-weight: 600;
         }
         
         .login-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            max-width: 900px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 24px;
             width: 100%;
+            max-width: 800px;
         }
         
         .login-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 35px;
+            background: var(--bg-glass);
+            padding: 30px 20px;
+            border-radius: var(--radius-xl);
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-md);
-            border: 3px solid transparent;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 180px;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .login-card:hover::before {
+            transform: translateX(100%);
         }
         
         .login-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
+            background: rgba(255,255,255,0.08);
+            border-color: var(--brand-accent);
+            transform: scale(1.05);
         }
         
         .login-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
+            font-size: 2.8rem;
+            display: block;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
         }
         
         .login-name {
-            font-size: 1.3rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #fff;
+        }
+        
+        .login-role {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 5px;
+            line-height: 1.2;
         }
         
         .login-badge {
             display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         
         .login-badge.pending {
-            background: #FFEBEE;
-            color: #C62828;
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
         }
         
         .login-badge.complete {
-            background: #E8F5E9;
-            color: #2E7D32;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
         }
         
         .user-management {
-            margin-top: 30px;
+            margin-top: 40px;
             text-align: center;
         }
         
         .btn-manage {
             padding: 12px 24px;
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 0.95rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Rubik', sans-serif;
-            color: var(--text-primary);
+            transition: all 0.3s;
+            font-family: 'Inter', 'Rubik', sans-serif;
+            color: var(--text-secondary);
         }
         
         .btn-manage:hover {
-            background: #F5F5F5;
-            border-color: #2196F3;
-            color: #2196F3;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--brand-accent);
+            color: var(--brand-accent);
+            transform: translateY(-1px);
         }
         
         /* User List in Modal */
@@ -1558,9 +1662,19 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v6.2</div>
-        <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
-        <p class="login-subtitle">בחרו את חבר המשפחה</p>
+        <div class="version-badge-login">v8.0</div>
+        
+        <div class="brand-header">
+            <div class="logo-monogram">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                    <rect width="100" height="100" rx="30" fill="#161618"/>
+                    <path d="M35 30V70H65M65 55L55 65" stroke="#6366F1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1 class="brand-name">LOBALI</h1>
+            <p class="brand-slogan">Elite Procrastination Management</p>
+        </div>
+        
         <div class="login-grid" id="loginGrid"></div>
         
         <!-- User Management -->
@@ -1604,16 +1718,23 @@
         <!-- Header -->
         <header>
             <div class="header-compact">
-                <div class="user-info-compact">
-                    <span class="user-avatar-small" id="userAvatar">👨</span>
-                    <div class="user-details-compact">
-                        <span class="user-name-small" id="userName">משתמש</span>
-                        <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v6.2</span>
-                    </div>
+                <div class="header-logo">
+                    <svg width="30" height="30" viewBox="0 0 100 100">
+                        <rect width="100" height="100" rx="25" fill="#161618"/>
+                        <path d="M35 35V65H65" stroke="#6366F1" stroke-width="12" stroke-linecap="round"/>
+                    </svg>
+                    <span class="app-name">LOBALI</span>
                 </div>
                 
                 <div class="header-actions-compact">
+                    <div class="user-info-compact">
+                        <span class="user-avatar-small" id="userAvatar">👨</span>
+                        <div class="user-details-compact">
+                            <span class="user-name-small" id="userName">משתמש</span>
+                            <span class="user-role-small" id="userRole">תפקיד</span>
+                        </div>
+                    </div>
+                    
                     <div id="syncStatus" class="sync-compact">
                         <span class="sync-dot" style="background: #FFA500;"></span>
                     </div>
@@ -1900,18 +2021,57 @@
         
         // Family members
         // Family Members - Load from localStorage or use defaults
-        let familyMembers = JSON.parse(localStorage.getItem('familyMembers')) || {
-            liat: { id: 'liat', name: 'ליאת', icon: '👩', color: '#E91E63', role: 'מנהלת', isAdmin: true },
-            hagai: { id: 'hagai', name: 'חגי', icon: '👨', color: '#2196F3', role: 'מנהל', isAdmin: true, canBackup: true },
-            maya: { id: 'maya', name: 'מיה', icon: '👧', color: '#00BCD4', role: 'משתמשת' },
-            ariel: { id: 'ariel', name: 'אריאל', icon: '🧒', color: '#4CAF50', role: 'משתמש' },
-            ann: { id: 'ann', name: 'אן', icon: '👧', color: '#FF9800', role: 'משתמשת', canSpeak: true }
+        // Family Members - ALWAYS USE LATEST DEFINITION
+        const defaultFamilyMembers = {
+            liat: { 
+                id: 'liat', 
+                name: 'ליאת', 
+                icon: '👩‍💼', 
+                color: '#E91E63', 
+                role: 'מנהלת', 
+                roleDescription: 'המנכ"לית',
+                isAdmin: true 
+            },
+            hagai: { 
+                id: 'hagai', 
+                name: 'חגי', 
+                icon: '👨', 
+                color: '#2196F3', 
+                role: 'מנהל', 
+                roleDescription: 'התמיכה הטכנית',
+                isAdmin: true, 
+                canBackup: true 
+            },
+            maya: { 
+                id: 'maya', 
+                name: 'מיה', 
+                icon: '✍️', 
+                color: '#00BCD4', 
+                role: 'משתמשת',
+                roleDescription: 'יועצת אסטרטגית למנוחה'
+            },
+            ariel: { 
+                id: 'ariel', 
+                name: 'אריאל', 
+                icon: '🎮', 
+                color: '#4CAF50', 
+                role: 'משתמש',
+                roleDescription: 'ראש אגף פנאי ומשחקים'
+            },
+            ann: { 
+                id: 'ann', 
+                name: 'אן', 
+                icon: '👶', 
+                color: '#FF9800', 
+                role: 'משתמשת',
+                roleDescription: 'בקרת איכות וצרחות',
+                canSpeak: true 
+            }
         };
         
-        // Save default familyMembers if not exists
-        if (!localStorage.getItem('familyMembers')) {
-            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
-        }
+        // ALWAYS use the latest definition, override localStorage
+        let familyMembers = defaultFamilyMembers;
+        localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
         
         // Current state
         let currentUser = null;
@@ -1976,15 +2136,13 @@
                     
                     const card = document.createElement('div');
                     card.className = 'login-card';
-                    card.style.borderColor = member.color;
                     card.onclick = () => loginUser(member.id);
                     
                     card.innerHTML = `
                         <div class="login-icon">${member.icon}</div>
                         <div class="login-name">${member.name}</div>
-                        <div class="login-badge ${pendingCount > 0 ? 'pending' : 'complete'}">
-                            ${pendingCount > 0 ? `${pendingCount} משימות` : '✓ אין משימות'}
-                        </div>
+                        <div class="login-role">${member.roleDescription || member.role}</div>
+                        ${pendingCount > 0 ? `<div class="login-badge pending">${pendingCount} משימות</div>` : ''}
                     `;
                     
                     grid.appendChild(card);
