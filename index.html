@@ -3,6 +3,8 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v5.7 (09/02/2026) - 🎨 UI Polish: אייקונים קטנים (כולם בשורה), קארד נקי ללא כותרת!
+    v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
     v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
     v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
     v5.3 (09/02/2026) - 👥 User Management: ניהול משתמשים מלא - הוסף, ערוך, מחק משתמשים!
@@ -31,13 +33,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.5 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.7 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.5">
+    <meta name="version" content="5.7">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Bug Fixes: ניהול משתמשים עובד + Google Calendar משימה לשעה אחת! 🔧">
+    <meta name="changelog" content="UI Polish: אייקונים קטנים יותר, קארד נקי! 🎨">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -838,14 +840,14 @@
         /* Assignee Selection */
         .assignee-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 8px;
             margin-top: 10px;
         }
         
         .assignee-btn {
-            padding: 15px;
-            border: 3px solid transparent;
+            padding: 8px;
+            border: 2px solid transparent;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all 0.3s;
@@ -865,13 +867,13 @@
         }
         
         .assignee-icon {
-            font-size: 2rem;
-            margin-bottom: 8px;
+            font-size: 1.5rem;
+            margin-bottom: 4px;
         }
         
         .assignee-name {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
         }
         
         /* Priority Selection */
@@ -1518,7 +1520,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v5.5</div>
+        <div class="version-badge-login">v5.7</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1569,7 +1571,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v5.5</span>
+                        <span class="version-badge-header">v5.7</span>
                     </div>
                 </div>
                 
@@ -1604,14 +1606,13 @@
                 <!-- Tasks Tab -->
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
-                    <div class="card">
-                        <h3 class="card-title">➕ הוסף משימה מהר</h3>
-                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="margin-bottom: 15px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                    <div class="card" style="padding-top: 15px;">
+                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="margin-bottom: 12px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
                         
                         <div class="assignee-grid" id="quickAssigneeGrid"></div>
                         
-                        <button class="btn btn-primary" onclick="addQuickTask()" style="width: 100%; margin-top: 15px;">
-                            ➕ הוסף משימה
+                        <button class="btn btn-primary" onclick="addQuickTask()" style="width: 100%; margin-top: 12px;">
+                            ➕ הוסף
                         </button>
                     </div>
                     
@@ -1953,15 +1954,6 @@
         }
         
         function loginUser(userId) {
-            // For Hagai - require password
-            if (userId === 'hagai') {
-                const password = prompt('🔐 הכנס סיסמה עבור חגי:');
-                if (password !== 'cochag12') {
-                    alert('❌ סיסמה שגויה!');
-                    return;
-                }
-            }
-            
             currentUser = familyMembers[userId];
             localStorage.setItem('currentUser', userId);
             showMainApp();
@@ -2809,13 +2801,13 @@
                         uncompleteTask(task.id);
                     }
                 }
-                // Swipe up (priority up - not implemented for tasks)
+                // Swipe up (move task up)
                 else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
-                    // Could implement priority increase here
+                    moveTaskUp(task.id);
                 }
-                // Swipe down (priority down - not implemented for tasks)
+                // Swipe down (move task down)
                 else if (diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
-                    // Could implement priority decrease here
+                    moveTaskDown(task.id);
                 }
                 
                 resetSwipe();
@@ -2830,6 +2822,48 @@
                     currentY = 0;
                     isSwiping = false;
                 }
+            });
+        }
+        
+        // Move task up (increase priority by changing createdAt)
+        function moveTaskUp(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            // Set createdAt to future (moves to top)
+            const newCreatedAt = Date.now() + 1000000;
+            
+            tasksRef.child(taskId).update({
+                createdAt: newCreatedAt
+            }).then(() => {
+                showToast('⬆️ המשימה עלתה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
+        }
+        
+        // Move task down (decrease priority by changing createdAt)
+        function moveTaskDown(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            // Set createdAt to past (moves to bottom)
+            const newCreatedAt = Date.now() - 1000000000;
+            
+            tasksRef.child(taskId).update({
+                createdAt: newCreatedAt
+            }).then(() => {
+                showToast('⬇️ המשימה ירדה');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
             });
         }
         
@@ -2877,13 +2911,18 @@
             isSyncing = true;
             updateSyncStatus();
             
+            // Set dueDate to today when uncompleting
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
             tasksRef.child(taskId).update({
                 status: 'pending',
                 completedAt: null,
                 completedBy: null,
-                completedById: null
+                completedById: null,
+                dueDate: today.getTime()
             }).then(() => {
-                showToast('↩️ המשימה חזרה למצב ממתין');
+                showToast('↩️ המשימה חזרה למצב ממתין עם תאריך היום');
             }).finally(() => {
                 isSyncing = false;
                 updateSyncStatus();
@@ -3988,7 +4027,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '5.1'
+                    version: '5.7'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4026,10 +4065,51 @@
         }
         
         async function performManualBackup() {
+            // Check if File System Access API is supported
+            if (!window.showDirectoryPicker) {
+                // Mobile fallback - download as file
+                performMobileBackup();
+                return;
+            }
+            
             const success = await performBackup(false);
             if (success) {
                 alert('✅ הגיבוי בוצע בהצלחה!');
             } else {
+                alert('❌ שגיאה בביצוע גיבוי');
+            }
+        }
+        
+        function performMobileBackup() {
+            try {
+                const backupData = {
+                    timestamp: new Date().toISOString(),
+                    user: currentUser.name,
+                    tasks: tasks,
+                    shopping: shopping,
+                    deletionHistory: deletionHistory,
+                    version: '5.7'
+                };
+                
+                const dataStr = JSON.stringify(backupData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                const filename = `family-tasks-backup-${dateStr}.json`;
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert('✅ הגיבוי הורד בהצלחה! בדוק בתיקיית ההורדות');
+            } catch (error) {
+                console.error('Mobile backup error:', error);
                 alert('❌ שגיאה בביצוע גיבוי');
             }
         }
