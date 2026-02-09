@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v3.1 (09/02/2026) - סיסמה לחגי (cochag12), גיבוי אוטומטי רק במחשב
     v3.0 (08/02/2026) - תיקון: מנהלים רואים כל המשימות, משימות מחזוריות (יומי/שבועי)
     v2.7 (08/02/2026) - כפתורי מחיקות/גיבוי/שחזור רק לחגי (לא לליאת)
     v2.6 (08/02/2026) - קליק על משתמש בסטטיסטיקות מעבר למשימות שלו, חיפוש גם לפי שם
@@ -18,13 +19,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v3.0 🔥</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v3.1 🔥</title>
     
     <!-- Version Info -->
-    <meta name="version" content="3.0">
-    <meta name="last-updated" content="2026-02-08">
+    <meta name="version" content="3.1">
+    <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="תיקון תצוגה למנהלים, משימות מחזוריות">
+    <meta name="changelog" content="סיסמה לחגי, גיבוי רק במחשב">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1378,7 +1379,7 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 3.0 🔥
+                    גרסה 3.1 🔥
                 </div>
             </div>
         </div>
@@ -1620,6 +1621,15 @@
         }
         
         function loginUser(userId) {
+            // For Hagai - require password
+            if (userId === 'hagai') {
+                const password = prompt('🔐 הכנס סיסמה עבור חגי:');
+                if (password !== 'cochag12') {
+                    alert('❌ סיסמה שגויה!');
+                    return;
+                }
+            }
+            
             currentUser = familyMembers[userId];
             localStorage.setItem('currentUser', userId);
             showMainApp();
@@ -2915,6 +2925,13 @@
         
         async function setupAutoBackup() {
             if (!currentUser.canBackup) return;
+            
+            // Check if mobile device - disable auto backup on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                console.log('📱 מכשיר נייד - גיבוי אוטומטי מושבת');
+                return;
+            }
             
             if (!('showDirectoryPicker' in window)) {
                 console.log('הדפדפן לא תומך בגיבוי אוטומטי');
