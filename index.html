@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!--
-    משימות משפחתיות - משפחת חגי וליאת
+    LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v8.0 (09/02/2026) - 💜 LOBALI Rebranding: מסך התחברות חדש עם לוגו L, כל האפליקציה נשארה זהה!
     v6.2 (09/02/2026) - 🔧 Polish: פרופורציות 60/40 (input/כפתור), תיקון גיבוי בנייד עם בדיקות!
     v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
     v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים, responsive!
@@ -35,13 +36,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v6.2 🌟</title>
+    <title>LOBALI v8.0 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="6.2">
+    <meta name="version" content="8.0">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Polish: פרופורציות 60/40 (input 60%, כפתור 40%), תיקון גיבוי בנייד עם בדיקות! 🔧">
+    <meta name="changelog" content="LOBALI Rebranding: מסך התחברות חדש, כל האפליקציה נשארה זהה! 💜">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -193,10 +194,10 @@
             font-size: 0.85rem;
             font-weight: 700;
             color: white;
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            padding: 6px 12px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            padding: 8px 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
             z-index: 10;
         }
         
@@ -1309,106 +1310,158 @@
         }
         
         /* Login Screen */
+        /* Login Screen - LOBALI Design */
         .login-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            background: #0A0A0B;
+            background: radial-gradient(circle at center, #1E1E2D 0%, #0A0A0B 100%);
+            padding: 40px 20px;
+        }
+        
+        .brand-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .logo-svg {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            display: block;
         }
         
         .login-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 15px;
-            text-align: center;
-            background: linear-gradient(135deg, #E91E63, #FF9800);
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to bottom, #fff 0%, #64748B 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
         }
         
         .login-subtitle {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
+            font-size: 1rem;
+            color: #6366F1;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-weight: 600;
         }
         
         .login-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            max-width: 900px;
+            gap: 24px;
+            max-width: 1100px;
             width: 100%;
         }
         
         .login-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 35px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-md);
-            border: 3px solid transparent;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .login-card:hover::before {
+            transform: translateX(100%);
         }
         
         .login-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #6366F1;
+            transform: scale(1.05);
         }
         
         .login-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
         }
         
         .login-name {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .login-role {
+            font-size: 0.75rem;
+            color: #94A3B8;
+            text-align: center;
+            line-height: 1.4;
         }
         
         .login-badge {
             display: inline-block;
             padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
             margin-top: 10px;
         }
         
         .login-badge.pending {
-            background: #FFEBEE;
-            color: #C62828;
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
         }
         
         .login-badge.complete {
-            background: #E8F5E9;
-            color: #2E7D32;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
         }
         
         .user-management {
-            margin-top: 30px;
+            margin-top: 50px;
             text-align: center;
         }
         
         .btn-manage {
-            padding: 12px 24px;
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
+            padding: 14px 32px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #94A3B8;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
             font-family: 'Rubik', sans-serif;
-            color: var(--text-primary);
         }
         
         .btn-manage:hover {
-            background: #F5F5F5;
-            border-color: #2196F3;
-            color: #2196F3;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #6366F1;
+            color: #6366F1;
+            transform: translateY(-2px);
         }
         
         /* User List in Modal */
@@ -1558,9 +1611,18 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v6.2</div>
-        <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
-        <p class="login-subtitle">בחרו את חבר המשפחה</p>
+        <div class="version-badge-login">v8.0</div>
+        
+        <div class="brand-header">
+            <svg class="logo-svg" viewBox="0 0 100 100">
+                <rect width="100" height="100" rx="30" fill="#161618"/>
+                <path d="M35 30V70H65M65 55L55 65" stroke="#6366F1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            
+            <h1 class="login-title">LOBALI</h1>
+            <p class="login-subtitle">ELITE PROCRASTINATION MANAGEMENT</p>
+        </div>
+        
         <div class="login-grid" id="loginGrid"></div>
         
         <!-- User Management -->
@@ -1645,9 +1707,9 @@
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
-                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם הפריט..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
-                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap; height: 42px;">
                                 ➕ הוסף
                             </button>
                         </div>
@@ -1900,18 +1962,57 @@
         
         // Family members
         // Family Members - Load from localStorage or use defaults
-        let familyMembers = JSON.parse(localStorage.getItem('familyMembers')) || {
-            liat: { id: 'liat', name: 'ליאת', icon: '👩', color: '#E91E63', role: 'מנהלת', isAdmin: true },
-            hagai: { id: 'hagai', name: 'חגי', icon: '👨', color: '#2196F3', role: 'מנהל', isAdmin: true, canBackup: true },
-            maya: { id: 'maya', name: 'מיה', icon: '👧', color: '#00BCD4', role: 'משתמשת' },
-            ariel: { id: 'ariel', name: 'אריאל', icon: '🧒', color: '#4CAF50', role: 'משתמש' },
-            ann: { id: 'ann', name: 'אן', icon: '👧', color: '#FF9800', role: 'משתמשת', canSpeak: true }
+        // LOBALI Family Members - Always use latest
+        const defaultFamilyMembers = {
+            liat: { 
+                id: 'liat', 
+                name: 'ליאת', 
+                icon: '👩‍💼', 
+                color: '#E91E63', 
+                role: 'מנהלת', 
+                roleDescription: 'המנכ"לית',
+                isAdmin: true 
+            },
+            hagai: { 
+                id: 'hagai', 
+                name: 'חגי', 
+                icon: '👨', 
+                color: '#2196F3', 
+                role: 'מנהל', 
+                roleDescription: 'התמיכה הטכנית',
+                isAdmin: true, 
+                canBackup: true 
+            },
+            maya: { 
+                id: 'maya', 
+                name: 'מיה', 
+                icon: '✍️', 
+                color: '#00BCD4', 
+                role: 'משתמשת',
+                roleDescription: 'יועצת אסטרטגית למנוחה'
+            },
+            ariel: { 
+                id: 'ariel', 
+                name: 'אריאל', 
+                icon: '🎮', 
+                color: '#4CAF50', 
+                role: 'משתמש',
+                roleDescription: 'ראש אגף פנאי ומשחקים'
+            },
+            ann: { 
+                id: 'ann', 
+                name: 'אן', 
+                icon: '👶', 
+                color: '#FF9800', 
+                role: 'משתמשת',
+                roleDescription: 'בקרת איכות וצרחות',
+                canSpeak: true 
+            }
         };
         
-        // Save default familyMembers if not exists
-        if (!localStorage.getItem('familyMembers')) {
-            localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
-        }
+        // Always use latest definition (override localStorage for consistency)
+        let familyMembers = defaultFamilyMembers;
+        localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
         
         // Current state
         let currentUser = null;
@@ -1976,15 +2077,13 @@
                     
                     const card = document.createElement('div');
                     card.className = 'login-card';
-                    card.style.borderColor = member.color;
                     card.onclick = () => loginUser(member.id);
                     
                     card.innerHTML = `
                         <div class="login-icon">${member.icon}</div>
                         <div class="login-name">${member.name}</div>
-                        <div class="login-badge ${pendingCount > 0 ? 'pending' : 'complete'}">
-                            ${pendingCount > 0 ? `${pendingCount} משימות` : '✓ אין משימות'}
-                        </div>
+                        <div class="login-role">${member.roleDescription || member.role}</div>
+                        ${pendingCount > 0 ? `<div class="login-badge pending">${pendingCount} משימות</div>` : ''}
                     `;
                     
                     grid.appendChild(card);
@@ -3998,19 +4097,19 @@
         async function setupAutoBackup() {
             if (!currentUser.canBackup) return;
             
-            // Allow backup on all devices (including mobile)
-            console.log('✅ מערכת גיבוי זמינה');
-            
+            // Check if File System Access API is supported (works on some mobile browsers)
             if (!('showDirectoryPicker' in window)) {
-                console.log('הדפדפן לא תומך בגיבוי אוטומטי');
+                console.log('📱 הדפדפן לא תומך ב-File System Access API - גיבוי ידני זמין');
                 return;
             }
+            
+            console.log('✅ מערכת גיבוי אוטומטי זמינה');
             
             // Check if this is first time
             const autoBackupEnabled = localStorage.getItem('autoBackupEnabled');
             
             if (autoBackupEnabled === null) {
-                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.\n\n📱 עובד גם בנייד!');
+                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.\n\n📱 עובד גם בדפדפנים נתמכים בנייד!');
                 
                 if (confirmed) {
                     localStorage.setItem('autoBackupEnabled', 'true');
@@ -4038,10 +4137,12 @@
                                 backupDirectoryHandle = savedHandle;
                                 console.log('✅ הרשאת גיבוי חודשה');
                                 await performBackup(true);
+                            } else {
+                                console.log('⚠️ הרשאה נדחתה - גיבוי אוטומטי לא פעיל');
                             }
                         }
                     } else {
-                        console.log('⚠️ לא נמצא נתיב שמור');
+                        console.log('⚠️ לא נמצא נתיב שמור - מבקש נתיב חדש');
                         const success = await requestBackupDirectory();
                         if (success) {
                             await performBackup(true);
@@ -4106,7 +4207,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '6.2'
+                    version: '8.0'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4193,7 +4294,7 @@
                     tasks: tasks || {},
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || {},
-                    version: '6.2'
+                    version: '8.0'
                 };
                 
                 const dataStr = JSON.stringify(backupData, null, 2);
