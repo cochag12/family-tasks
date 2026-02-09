@@ -3,7 +3,8 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v5.9 (09/02/2026) - 🔧 Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי אם אין), תאריך יצירה במשימות!
+    v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים (42px), כפתורים קטנים, responsive!
+    v6.0 (09/02/2026) - 🔧 Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי אם אין), תאריך יצירה במשימות!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
     v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
     v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
@@ -33,13 +34,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.9 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v6.0 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.9">
+    <meta name="version" content="6.0">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי), תאריך יצירה במשימות! 🔧">
+    <meta name="changelog" content="Complete Fix: ניהול משתמשים (z-index), משימות עצמאיות, אייקונים קטנים, responsive! 🎯">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -461,18 +462,19 @@
         }
         
         .filter-btn {
-            padding: 10px 18px;
+            padding: 6px 10px;
             background: rgba(0,0,0,0.04);
             border: 2px solid transparent;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-family: 'Rubik', sans-serif;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
+            white-space: nowrap;
         }
         
         .filter-btn:hover {
@@ -488,9 +490,9 @@
         
         .filter-count {
             background: rgba(255,255,255,0.9);
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 10px;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 700;
         }
         
@@ -846,14 +848,14 @@
         /* Assignee Selection */
         .assignee-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-            gap: 6px;
-            margin-top: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+            gap: 4px;
+            margin-top: 6px;
         }
         
         .assignee-btn {
-            padding: 5px;
-            border: 2px solid transparent;
+            padding: 3px;
+            border: 1px solid transparent;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all 0.3s;
@@ -873,13 +875,13 @@
         }
         
         .assignee-icon {
-            font-size: 1.2rem;
-            margin-bottom: 2px;
+            font-size: 1rem;
+            margin-bottom: 1px;
         }
         
         .assignee-name {
             font-weight: 600;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
         }
         
         /* Priority Selection */
@@ -921,7 +923,7 @@
             bottom: 0;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
-            z-index: 1000;
+            z-index: 2000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -1476,10 +1478,6 @@
                 flex-direction: column;
             }
             
-            .assignee-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
             .item {
                 flex-wrap: nowrap;
                 padding: 6px 10px;
@@ -1494,6 +1492,39 @@
             .item-actions {
                 flex-wrap: nowrap;
                 gap: 4px;
+            }
+            
+            .filter-btn {
+                padding: 5px 8px;
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+            
+            .filter-count {
+                padding: 1px 4px;
+                font-size: 0.65rem;
+            }
+            
+            .assignee-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                gap: 3px;
+            }
+            
+            .assignee-btn {
+                padding: 2px;
+            }
+            
+            .assignee-icon {
+                font-size: 0.95rem;
+            }
+            
+            .assignee-name {
+                font-size: 0.6rem;
+            }
+            
+            .filters {
+                gap: 6px;
+                margin-bottom: 15px;
             }
             
             .btn-icon {
@@ -1526,7 +1557,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v5.9</div>
+        <div class="version-badge-login">v6.0</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1540,7 +1571,7 @@
     </div>
 
     <!-- User Management Modal -->
-    <div id="userManagementModal" class="modal hidden">
+    <div id="userManagementModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">👥 ניהול משתמשים</h3>
@@ -1577,7 +1608,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v5.9</span>
+                        <span class="version-badge-header">v6.0</span>
                     </div>
                 </div>
                 
@@ -1972,12 +2003,12 @@
         
         // User Management Modal
         function openUserManagementModal() {
-            document.getElementById('userManagementModal').classList.remove('hidden');
+            document.getElementById('userManagementModal').classList.add('active');
             loadCurrentUsers();
         }
         
         function closeUserManagementModal() {
-            document.getElementById('userManagementModal').classList.add('hidden');
+            document.getElementById('userManagementModal').classList.remove('active');
             // Clear inputs
             document.getElementById('newUserName').value = '';
             document.getElementById('newUserIcon').value = '';
@@ -2608,20 +2639,18 @@
             } else if (currentFilter === 'completed') {
                 filteredTasks = filteredTasks.filter(t => t.status === 'completed');
             } else if (currentFilter === 'personal') {
-                // Show only personal tasks that the user can see
+                // Show personal tasks (tasks created by user for themselves)
                 filteredTasks = filteredTasks.filter(t => {
-                    if (!t.isPersonal) return false;
-                    // Hagai sees all personal tasks
-                    if (currentUser.id === 'hagai') return true;
-                    // Others see only their own personal tasks
-                    return t.assignedTo === currentUser.id;
+                    // Personal task = isPersonal flag is true
+                    return t.isPersonal === true;
                 });
             } else if (currentFilter === 'my-tasks') {
-                // Show only tasks assigned to me
-                filteredTasks = filteredTasks.filter(t => t.assignedTo === currentUser.id);
+                // Show only tasks assigned to me (including personal tasks)
+                filteredTasks = filteredTasks.filter(t => t.assignedTo === currentUser.id && t.status === 'pending');
             }
             
-            // Sort: pinned first, then by status, then regular tasks before personal tasks, then by date
+            // Sort: pinned first, then by status, then by date
+            // Note: In 'my-tasks' filter, don't push personal tasks to the end
             filteredTasks.sort((a, b) => {
                 // Pinned always first
                 if (a.isPinned && !b.isPinned) return -1;
@@ -2632,7 +2661,8 @@
                 if (a.status === 'completed' && b.status === 'pending') return 1;
                 
                 // Within same status: regular tasks before personal tasks
-                if (a.status === b.status) {
+                // EXCEPT in 'my-tasks' and 'personal' filters where we don't separate
+                if (a.status === b.status && currentFilter !== 'my-tasks' && currentFilter !== 'personal') {
                     if (!a.isPersonal && b.isPersonal) return -1;
                     if (a.isPersonal && !b.isPersonal) return 1;
                 }
@@ -4048,7 +4078,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '5.9'
+                    version: '6.0'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4129,7 +4159,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '5.9'
+                    version: '6.0'
                 };
                 
                 const dataStr = JSON.stringify(backupData, null, 2);
