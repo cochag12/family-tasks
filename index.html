@@ -1354,7 +1354,7 @@
         
         .login-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 24px;
             max-width: 1100px;
             width: 100%;
@@ -1363,14 +1363,14 @@
         .login-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px 20px;
+            border-radius: 16px;
+            padding: 20px 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative;
             overflow: hidden;
-            min-height: 160px;
+            min-height: 130px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1400,24 +1400,24 @@
         }
         
         .login-icon {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
             display: block;
             filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
         }
         
         .login-name {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #fff;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         
         .login-role {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: #94A3B8;
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         
         .login-badge {
@@ -1671,7 +1671,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v6.2</span>
+                        <span class="version-badge-header">v8.0</span>
                     </div>
                 </div>
                 
@@ -1707,9 +1707,9 @@
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
-                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                             <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
-                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap; height: 42px;">
+                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">
                                 ➕ הוסף
                             </button>
                         </div>
@@ -1749,10 +1749,10 @@
                 <div id="shoppingTab" class="tab-content">
                     <div class="card">
                         <h3 class="card-title">➕ הוספת פריט</h3>
-                        <form class="quick-add" onsubmit="quickAddItem(event)">
-                            <input type="text" class="form-input" id="quickItemInput" placeholder="שם הפריט..." required>
-                            <button type="submit" class="btn btn-primary">➕ הוסף</button>
-                        </form>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-input" id="quickItemInput" placeholder="שם הפריט..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') { event.preventDefault(); quickAddItem(event); }">
+                            <button type="button" class="btn btn-primary" onclick="quickAddItem(event)" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">➕ הוסף</button>
+                        </div>
                     </div>
                     
                     <!-- Search Box -->
@@ -2879,15 +2879,14 @@
                 canSwipeVertical = false;
                 element.classList.add('swiping');
                 
-                // Start long press timer for vertical swipe
+                // Start long press timer for vertical swipe (0.5 seconds)
                 longPressTimer = setTimeout(() => {
                     canSwipeVertical = true;
                     // Vibrate if available
                     if (navigator.vibrate) {
-                        navigator.vibrate(50);
+                        navigator.vibrate(30);
                     }
-                    showToast('עכשיו ניתן להזיז למעלה/למטה');
-                }, 2000); // 2 seconds
+                }, 500);
             });
             
             element.addEventListener('touchmove', (e) => {
@@ -2899,12 +2898,10 @@
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
                 
-                // Cancel long press if moved too much
-                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
+                // Cancel long press if moved horizontally
+                if (Math.abs(diffX) > 10 && longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
                 }
                 
                 // Only swipe if horizontal movement is dominant
@@ -3562,12 +3559,24 @@
             let currentX = 0;
             let currentY = 0;
             let isSwiping = false;
+            let longPressTimer = null;
+            let canSwipeVertical = false;
             
             element.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 isSwiping = false;
+                canSwipeVertical = false;
                 element.classList.add('swiping');
+                
+                // Start long press timer for vertical swipe (0.5 seconds)
+                longPressTimer = setTimeout(() => {
+                    canSwipeVertical = true;
+                    // Vibrate if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate(30);
+                    }
+                }, 500);
             });
             
             element.addEventListener('touchmove', (e) => {
@@ -3578,6 +3587,12 @@
                 
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
+                
+                // Cancel long press if moved horizontally
+                if (Math.abs(diffX) > 10 && longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
                 
                 // Only swipe if horizontal movement is dominant
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
@@ -3602,8 +3617,8 @@
                         leftIndicator.classList.remove('visible');
                         rightIndicator.classList.remove('visible');
                     }
-                } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Swipe vertical
+                } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
+                    // Swipe vertical - ONLY after long press
                     e.preventDefault();
                     isSwiping = true;
                     element.style.transform = `translateY(${diffY}px)`;
@@ -3628,6 +3643,12 @@
             });
             
             element.addEventListener('touchend', (e) => {
+                // Clear long press timer
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                
                 if (!isSwiping) {
                     resetSwipe();
                     return;
@@ -3648,12 +3669,12 @@
                         unpurchaseItem(item.id);
                     }
                 }
-                // Swipe up (move up in list)
-                else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
+                // Swipe up (move up in list) - ONLY if long press was activated
+                else if (canSwipeVertical && diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
                     moveShoppingItemUp(item.id);
                 }
-                // Swipe down (move down in list)
-                else if (diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
+                // Swipe down (move down in list) - ONLY if long press was activated
+                else if (canSwipeVertical && diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
                     moveShoppingItemDown(item.id);
                 }
                 
@@ -3668,6 +3689,7 @@
                     currentX = 0;
                     currentY = 0;
                     isSwiping = false;
+                    canSwipeVertical = false;
                 }
             });
         }
