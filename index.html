@@ -3,7 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v5.8 (09/02/2026) - 🎯 UX Perfect: משימות עצמאיות אוטומטי, 📅 תמיד מוצג, אייקונים מיני (52px), Header צר (8px)!
+    v5.9 (09/02/2026) - 🔧 Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי אם אין), תאריך יצירה במשימות!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
     v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
     v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
@@ -33,13 +33,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.8 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.9 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.8">
+    <meta name="version" content="5.9">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="UX Perfect: משימות עצמאיות אוטומטי, 📅 תמיד, אייקונים מיני, Header צר! 🎯">
+    <meta name="changelog" content="Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי), תאריך יצירה במשימות! 🔧">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -553,6 +553,12 @@
         .item.completed .item-content {
             text-decoration: line-through;
             color: var(--text-secondary);
+        }
+        
+        /* Personal Tasks - Different color */
+        .item.personal-task {
+            background: linear-gradient(to right, #FFF9E6 0%, #FFFEF8 100%);
+            border-left: 3px solid #FF9800;
         }
         
         .item.purchased {
@@ -1520,7 +1526,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v5.8</div>
+        <div class="version-badge-login">v5.9</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1571,7 +1577,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v5.8</span>
+                        <span class="version-badge-header">v5.9</span>
                     </div>
                 </div>
                 
@@ -1953,10 +1959,15 @@
             });
         }
         
-        function loginUser(userId) {
+        async function loginUser(userId) {
             currentUser = familyMembers[userId];
             localStorage.setItem('currentUser', userId);
             showMainApp();
+            
+            // Auto backup for Hagai on login
+            if (userId === 'hagai') {
+                await performBackup(true); // silent backup
+            }
         }
         
         // User Management Modal
@@ -2184,7 +2195,12 @@
             populateQuickAssigneeGrid();
         }
         
-        function logout() {
+        async function logout() {
+            // Auto backup for Hagai before logout
+            if (currentUser && currentUser.id === 'hagai') {
+                await performBackup(true); // silent backup
+            }
+            
             currentUser = null;
             localStorage.removeItem('currentUser');
             
@@ -2605,12 +2621,23 @@
                 filteredTasks = filteredTasks.filter(t => t.assignedTo === currentUser.id);
             }
             
-            // Sort: pinned first, then by status, then by date
+            // Sort: pinned first, then by status, then regular tasks before personal tasks, then by date
             filteredTasks.sort((a, b) => {
+                // Pinned always first
                 if (a.isPinned && !b.isPinned) return -1;
                 if (!a.isPinned && b.isPinned) return 1;
+                
+                // Pending before completed
                 if (a.status === 'pending' && b.status === 'completed') return -1;
                 if (a.status === 'completed' && b.status === 'pending') return 1;
+                
+                // Within same status: regular tasks before personal tasks
+                if (a.status === b.status) {
+                    if (!a.isPersonal && b.isPersonal) return -1;
+                    if (a.isPersonal && !b.isPersonal) return 1;
+                }
+                
+                // Finally by date
                 return b.createdAt - a.createdAt;
             });
             
@@ -2651,7 +2678,7 @@
         
         function createTaskElement(task, index) {
             const div = document.createElement('div');
-            div.className = `item ${task.isPinned ? 'pinned' : ''} ${task.status === 'completed' ? 'completed' : ''}`;
+            div.className = `item ${task.isPinned ? 'pinned' : ''} ${task.status === 'completed' ? 'completed' : ''} ${task.isPersonal ? 'personal-task' : ''}`;
             div.setAttribute('data-task-id', task.id);
             div.dataset.itemId = task.id;
             
@@ -2695,7 +2722,7 @@
                 <div class="swipe-indicator down">⬇️</div>
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
-                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${priority.emoji} • ${task.assignedToIcon} ${task.assignedToName}${dueDate ? ` • 📅 ${dueDate.toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
+                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${task.assignedToIcon} ${task.assignedToName}${task.createdAt ? ` • ${new Date(task.createdAt).toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
                 </div>
                 <div class="item-actions">${actions}</div>
             `;
@@ -4007,13 +4034,12 @@
             }
             
             try {
+                // Check permission silently - queryPermission never shows a dialog
                 const permission = await backupDirectoryHandle.queryPermission({ mode: 'readwrite' });
                 if (permission !== 'granted') {
-                    const newPermission = await backupDirectoryHandle.requestPermission({ mode: 'readwrite' });
-                    if (newPermission !== 'granted') {
-                        console.log('אין הרשאה לתיקיית הגיבוי');
-                        return false;
-                    }
+                    // Permission lost - don't show any dialog, just skip silently
+                    if (!silent) console.warn('Backup folder permission not granted, skipping backup');
+                    return false;
                 }
                 
                 const backupData = {
@@ -4022,7 +4048,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '5.7'
+                    version: '5.9'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4067,10 +4093,30 @@
                 return;
             }
             
-            const success = await performBackup(false);
-            if (success) {
-                alert('✅ הגיבוי בוצע בהצלחה!');
-            } else {
+            try {
+                // If no backup directory, ask for one
+                if (!backupDirectoryHandle) {
+                    backupDirectoryHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite',
+                        startIn: 'documents'
+                    });
+                    
+                    // Save handle to IndexedDB for next time
+                    await saveDirectoryHandle(backupDirectoryHandle);
+                }
+                
+                const success = await performBackup(false);
+                if (success) {
+                    alert('✅ הגיבוי בוצע בהצלחה!');
+                } else {
+                    alert('❌ שגיאה בביצוע גיבוי');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    // User cancelled
+                    return;
+                }
+                console.error('Manual backup error:', error);
                 alert('❌ שגיאה בביצוע גיבוי');
             }
         }
@@ -4083,7 +4129,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '5.7'
+                    version: '5.9'
                 };
                 
                 const dataStr = JSON.stringify(backupData, null, 2);
