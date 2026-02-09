@@ -1708,14 +1708,17 @@
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
-                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">
-                                ➕ הוסף
-                            </button>
+                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="width: 100%; margin-bottom: 12px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                        
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">
+                            לחץ לבחירה:
                         </div>
                         
-                        <div class="assignee-grid" id="quickAssigneeGrid"></div>
+                        <div class="assignee-grid" id="quickAssigneeGrid" style="margin-bottom: 12px;"></div>
+                        
+                        <button class="btn btn-primary" onclick="addQuickTask()" style="width: 100%;">
+                            ➕ הוסף
+                        </button>
                     </div>
                     
                     <!-- Search Box -->
@@ -4278,12 +4281,13 @@
             // Check if File System Access API is supported
             if (!window.showDirectoryPicker) {
                 // Mobile fallback - download as file
+                console.log('📱 נייד: משתמש בהורדת קובץ');
                 performMobileBackup();
                 return;
             }
             
             try {
-                // If no backup directory, ask for one
+                // Desktop: use directory picker
                 if (!backupDirectoryHandle) {
                     backupDirectoryHandle = await window.showDirectoryPicker({
                         mode: 'readwrite',
@@ -4296,17 +4300,20 @@
                 
                 const success = await performBackup(false);
                 if (success) {
-                    alert('✅ הגיבוי בוצע בהצלחה!');
+                    const taskCount = Object.keys(tasks).length;
+                    const shoppingCount = Object.keys(shopping || {}).length;
+                    alert(`✅ הגיבוי בוצע בהצלחה!\n\n📋 ${taskCount} משימות\n🛒 ${shoppingCount} פריטי קנייה`);
                 } else {
-                    alert('❌ שגיאה בביצוע גיבוי');
+                    alert('❌ שגיאה בביצוע גיבוי - נסה שוב');
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
                     // User cancelled
+                    console.log('ביטול בחירת תיקייה');
                     return;
                 }
                 console.error('Manual backup error:', error);
-                alert('❌ שגיאה בביצוע גיבוי');
+                alert('❌ שגיאה בביצוע גיבוי: ' + error.message);
             }
         }
         
@@ -4318,12 +4325,19 @@
                     return;
                 }
                 
+                // Wait for Firebase data to load
+                if (!tasks || Object.keys(tasks).length === 0) {
+                    alert('⏳ טוען נתונים מהשרת... נסה שוב בעוד רגע');
+                    return;
+                }
+                
                 const backupData = {
                     timestamp: new Date().toISOString(),
                     user: currentUser.name,
                     tasks: tasks || {},
                     shopping: shopping || {},
-                    deletionHistory: deletionHistory || {},
+                    deletionHistory: deletionHistory || [],
+                    familyMembers: familyMembers || {},
                     version: '8.0'
                 };
                 
@@ -4332,7 +4346,8 @@
                 
                 const now = new Date();
                 const dateStr = now.toISOString().split('T')[0];
-                const filename = `family-tasks-backup-${dateStr}.json`;
+                const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+                const filename = `LOBALI-backup-${dateStr}-${timeStr}.json`;
                 
                 // Create download link
                 const url = URL.createObjectURL(blob);
@@ -4351,7 +4366,9 @@
                     URL.revokeObjectURL(url);
                 }, 100);
                 
-                alert('✅ הגיבוי הורד בהצלחה! בדוק בתיקיית ההורדות');
+                const taskCount = Object.keys(tasks).length;
+                const shoppingCount = Object.keys(shopping || {}).length;
+                alert(`✅ הגיבוי הורד בהצלחה!\n\n📋 ${taskCount} משימות\n🛒 ${shoppingCount} פריטי קנייה\n\n✔️ בדוק בתיקיית ההורדות`);
             } catch (error) {
                 console.error('Mobile backup error:', error);
                 alert('❌ שגיאה בביצוע גיבוי: ' + error.message);
