@@ -3,9 +3,9 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v8.1 (10/02/2026) - 🎯 UX Perfect: כפתור הוסף מתחת לאנשים, "לחץ לבחירה:", גיבוי נייד משופר, touch-action:none!
+    v8.2 (10/02/2026) - 🎯 Critical Fix: גלילה vs החלקה תוקן! preventDefault רק בהחלקה, לא בגלילה רגילה!
+    v8.1 (10/02/2026) - 🎯 UX Perfect: כפתור הוסף מתחת לאנשים, "לחץ לבחירה:", גיבוי נייד משופר!
     v8.0 (09/02/2026) - 💜 LOBALI Rebranding: מסך התחברות חדש עם לוגו L, כל האפליקציה נשארה זהה!
-    v6.2 (09/02/2026) - 🔧 Polish: פרופורציות 60/40 (input/כפתור), תיקון גיבוי בנייד עם בדיקות!
     v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
     v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים, responsive!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
@@ -37,13 +37,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v8.1 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v8.2 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="8.1">
+    <meta name="version" content="8.2">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="UX Perfect: כפתור הוסף מתחת לאנשים, לחץ לבחירה, גיבוי נייד משופר, touch-action:none! 🎯">
+    <meta name="changelog" content="Critical Fix: גלילה vs החלקה תוקן! preventDefault רק בהחלקה 🎯">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1613,7 +1613,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v8.1</div>
+        <div class="version-badge-login">v8.2</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1673,7 +1673,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v8.1</span>
+                        <span class="version-badge-header">v8.2</span>
                     </div>
                 </div>
                 
@@ -2903,20 +2903,16 @@
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
                 
-                // Prevent scroll/refresh when there's any significant movement
-                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
-                    if (e.cancelable) e.preventDefault();
-                    isSwiping = true;
-                }
-                
                 // Cancel long press if moved horizontally
                 if (Math.abs(diffX) > 10 && longPressTimer) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
                 
-                // Horizontal swipe (immediate)
+                // Horizontal swipe (immediate) - always block scroll for horizontal movement
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
                     element.style.transform = `translateX(${diffX}px)`;
                     
                     const leftIndicator = element.querySelector('.swipe-indicator.left');
@@ -2936,7 +2932,9 @@
                         rightIndicator.classList.remove('visible');
                     }
                 } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Vertical swipe (only after 200ms long press)
+                    // Vertical swipe (only after 200ms long press) - ONLY THEN block scroll
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
                     element.style.transform = `translateY(${diffY}px)`;
                     
                     const upIndicator = element.querySelector('.swipe-indicator.up');
@@ -2954,6 +2952,7 @@
                         upIndicator.classList.remove('visible');
                     }
                 }
+                // If vertical movement but canSwipeVertical is false, allow normal scrolling (no preventDefault)
             }, { passive: false });
             
             element.addEventListener('touchend', (e) => {
@@ -3592,20 +3591,16 @@
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
                 
-                // Prevent scroll/refresh when there's any significant movement
-                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
-                    if (e.cancelable) e.preventDefault();
-                    isSwiping = true;
-                }
-                
                 // Cancel long press if moved horizontally
                 if (Math.abs(diffX) > 10 && longPressTimer) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
                 
-                // Horizontal swipe (immediate)
+                // Horizontal swipe (immediate) - always block scroll for horizontal movement
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
                     element.style.transform = `translateX(${diffX}px)`;
                     
                     const leftIndicator = element.querySelector('.swipe-indicator.left');
@@ -3625,7 +3620,9 @@
                         rightIndicator.classList.remove('visible');
                     }
                 } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Vertical swipe (only after 200ms long press)
+                    // Vertical swipe (only after 200ms long press) - ONLY THEN block scroll
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
                     element.style.transform = `translateY(${diffY}px)`;
                     
                     const upIndicator = element.querySelector('.swipe-indicator.up');
@@ -3643,6 +3640,7 @@
                         upIndicator.classList.remove('visible');
                     }
                 }
+                // If vertical movement but canSwipeVertical is false, allow normal scrolling (no preventDefault)
             }, { passive: false });
             
             element.addEventListener('touchend', (e) => {
