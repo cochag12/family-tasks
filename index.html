@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v4.2 (09/02/2026) - 👆 Swipe Perfect: ← נקנה, → ביטול (בלי אישור!), ↑ העלאה, ↓ הורדה
     v4.1 (09/02/2026) - 🎨 Professional Design: עיצוב נקי, Swipe Actions (←→↑), ניהול משתמשים, רשומה נקנתה עם קו
     v4.0 (09/02/2026) - 🚀 Mobile First Revolution: Header דק (50px), FAB צף, "המשימות שלי" ברירת מחדל, עיצוב מודרני
     v3.4 (09/02/2026) - עיצוב סופר קומפקטי: שורה אחת דקה (גם משימות וגם קניות, כולל מובייל)
@@ -24,13 +25,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v4.1 🚀</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v4.2 🚀</title>
     
     <!-- Version Info -->
-    <meta name="version" content="4.1">
+    <meta name="version" content="4.2">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Professional Design + Swipe Actions + User Management">
+    <meta name="changelog" content="Swipe Perfect: ← נקנה, → ביטול בלי אישור, ↑ העלאה, ↓ הורדה">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -486,6 +487,10 @@
             background: #E3F2FD;
         }
         
+        .item.swipe-down {
+            background: #FFF9C4;
+        }
+        
         .item.pinned {
             border-left: 4px solid #E91E63;
             background: #FFF0F5;
@@ -532,6 +537,13 @@
         .swipe-indicator.up {
             left: 50%;
             transform: translate(-50%, -50%);
+        }
+        
+        .swipe-indicator.down {
+            left: 50%;
+            top: auto;
+            bottom: 50%;
+            transform: translate(-50%, 50%);
         }
         
         .swipe-indicator.visible {
@@ -1539,7 +1551,7 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 4.1 🚀
+                    גרסה 4.2 🚀
                 </div>
             </div>
         </div>
@@ -2711,6 +2723,7 @@
                 <div class="swipe-indicator left">✓</div>
                 <div class="swipe-indicator right">↩️</div>
                 <div class="swipe-indicator up">⬆️</div>
+                <div class="swipe-indicator down">⬇️</div>
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
                     ${item.isPinned ? '📌 ' : ''}${item.name} • ${item.addedByIcon} ${item.addedBy} • 📅 ${addedDate.toLocaleDateString('he-IL')}${item.status === 'purchased' && item.purchasedBy ? ` • ✓ ${item.purchasedBy}` : ''}
@@ -2770,13 +2783,28 @@
                         leftIndicator.classList.remove('visible');
                         rightIndicator.classList.remove('visible');
                     }
-                } else if (Math.abs(diffY) > Math.abs(diffX) && diffY < -30) {
-                    // Swipe up
+                } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
+                    // Swipe vertical
                     e.preventDefault();
                     isSwiping = true;
                     element.style.transform = `translateY(${diffY}px)`;
-                    element.classList.add('swipe-up');
-                    element.querySelector('.swipe-indicator.up').classList.add('visible');
+                    
+                    const upIndicator = element.querySelector('.swipe-indicator.up');
+                    const downIndicator = element.querySelector('.swipe-indicator.down');
+                    
+                    if (diffY < -30) {
+                        // Swipe up
+                        element.classList.add('swipe-up');
+                        element.classList.remove('swipe-down');
+                        upIndicator.classList.add('visible');
+                        downIndicator.classList.remove('visible');
+                    } else if (diffY > 30) {
+                        // Swipe down
+                        element.classList.add('swipe-down');
+                        element.classList.remove('swipe-up');
+                        downIndicator.classList.add('visible');
+                        upIndicator.classList.remove('visible');
+                    }
                 }
             });
             
@@ -2805,11 +2833,15 @@
                 else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
                     moveShoppingItemUp(item.id);
                 }
+                // Swipe down (move down in list)
+                else if (diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
+                    moveShoppingItemDown(item.id);
+                }
                 
                 resetSwipe();
                 
                 function resetSwipe() {
-                    element.classList.remove('swiping', 'swipe-left', 'swipe-right', 'swipe-up');
+                    element.classList.remove('swiping', 'swipe-left', 'swipe-right', 'swipe-up', 'swipe-down');
                     element.style.transform = '';
                     element.querySelectorAll('.swipe-indicator').forEach(ind => ind.classList.remove('visible'));
                     startX = 0;
@@ -2846,6 +2878,30 @@
                 });
         }
         
+        function moveShoppingItemDown(itemId) {
+            const item = shopping[itemId];
+            if (!item) return;
+            
+            // Decrease priority by setting addedAt to past
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).update({
+                addedAt: Date.now() - (7 * 24 * 60 * 60 * 1000) // שבוע אחורה
+            })
+                .then(() => {
+                    showToast('⬇️ הפריט הורד למטה ברשימה');
+                })
+                .catch(error => {
+                    console.error('Error moving item:', error);
+                    alert('❌ שגיאה בהורדת הפריט');
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
+        }
+        
         function purchaseItem(itemId) {
             if (!currentUser.isAdmin) {
                 alert('❌ רק חגי וליאת יכולים לסמן פריטים כנקנו');
@@ -2872,10 +2928,6 @@
             const item = shopping[itemId];
             if (!item) return;
             
-            if (!confirm(`האם להחזיר "${item.name}" לרשימת הקניות?`)) {
-                return;
-            }
-            
             isSyncing = true;
             updateSyncStatus();
             
@@ -2885,7 +2937,7 @@
                 purchasedBy: null,
                 purchasedById: null
             }).then(() => {
-                console.log('✅ פריט חזר לרשימה');
+                showToast('↩️ הפריט חזר לרשימת הקניות');
             }).finally(() => {
                 isSyncing = false;
                 updateSyncStatus();
