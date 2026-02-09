@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v6.2 (09/02/2026) - 🔧 Polish: פרופורציות 60/40 (input/כפתור), תיקון גיבוי בנייד עם בדיקות!
     v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
     v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים, responsive!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
@@ -34,13 +35,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v6.1 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v6.2 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="6.1">
+    <meta name="version" content="6.2">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="UX Revolution: Input+כפתור באותה שורה, Long-press למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)! 🎯">
+    <meta name="changelog" content="Polish: פרופורציות 60/40 (input 60%, כפתור 40%), תיקון גיבוי בנייד עם בדיקות! 🔧">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1557,7 +1558,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v6.1</div>
+        <div class="version-badge-login">v6.2</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1608,7 +1609,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v6.1</span>
+                        <span class="version-badge-header">v6.2</span>
                     </div>
                 </div>
                 
@@ -1645,8 +1646,8 @@
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
                         <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם הפריט..." style="flex: 1; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
-                            <button class="btn btn-primary" onclick="addQuickTask()" style="white-space: nowrap; padding: 10px 20px;">
+                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם הפריט..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                            <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">
                                 ➕ הוסף
                             </button>
                         </div>
@@ -4105,7 +4106,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '6.1'
+                    version: '6.2'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4180,13 +4181,19 @@
         
         function performMobileBackup() {
             try {
+                // Check if user is logged in
+                if (!currentUser || !currentUser.name) {
+                    alert('❌ אנא התחבר תחילה');
+                    return;
+                }
+                
                 const backupData = {
                     timestamp: new Date().toISOString(),
                     user: currentUser.name,
-                    tasks: tasks,
-                    shopping: shopping,
-                    deletionHistory: deletionHistory,
-                    version: '6.1'
+                    tasks: tasks || {},
+                    shopping: shopping || {},
+                    deletionHistory: deletionHistory || {},
+                    version: '6.2'
                 };
                 
                 const dataStr = JSON.stringify(backupData, null, 2);
@@ -4196,19 +4203,27 @@
                 const dateStr = now.toISOString().split('T')[0];
                 const filename = `family-tasks-backup-${dateStr}.json`;
                 
+                // Create download link
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = filename;
+                a.style.display = 'none';
                 document.body.appendChild(a);
+                
+                // Trigger download
                 a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
                 
                 alert('✅ הגיבוי הורד בהצלחה! בדוק בתיקיית ההורדות');
             } catch (error) {
                 console.error('Mobile backup error:', error);
-                alert('❌ שגיאה בביצוע גיבוי');
+                alert('❌ שגיאה בביצוע גיבוי: ' + error.message);
             }
         }
         
