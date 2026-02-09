@@ -3,6 +3,8 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v3.3 (09/02/2026) - עיצוב קומפקטי: שורות דקות לפריטי קנייה (שורה אחת עם כל המידע)
+    v3.2 (09/02/2026) - תיקון באג: הסתרת כפתורי מחיקות/גיבוי/שחזור מכולם חוץ מחגי
     v3.1 (09/02/2026) - סיסמה לחגי (cochag12), גיבוי אוטומטי רק במחשב
     v3.0 (08/02/2026) - תיקון: מנהלים רואים כל המשימות, משימות מחזוריות (יומי/שבועי)
     v2.7 (08/02/2026) - כפתורי מחיקות/גיבוי/שחזור רק לחגי (לא לליאת)
@@ -19,13 +21,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v3.1 🔥</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v3.3 🔥</title>
     
     <!-- Version Info -->
-    <meta name="version" content="3.1">
+    <meta name="version" content="3.3">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="סיסמה לחגי, גיבוי רק במחשב">
+    <meta name="changelog" content="עיצוב קומפקטי - שורות דקות לפריטי קנייה">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -382,14 +384,14 @@
         .item {
             background: linear-gradient(135deg, #FFF 0%, #FAFAFA 100%);
             border-radius: var(--radius-sm);
-            padding: 15px 20px;
-            margin-bottom: 12px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
             border-right: 4px solid transparent;
             transition: all 0.3s;
             position: relative;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
         
         .item:hover {
@@ -411,10 +413,10 @@
         }
         
         .item-number {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-secondary);
-            min-width: 35px;
+            min-width: 30px;
             text-align: center;
         }
         
@@ -422,8 +424,13 @@
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             min-width: 0;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .item-header {
@@ -520,13 +527,13 @@
         }
         
         .btn-icon {
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-family: 'Rubik', sans-serif;
             display: inline-flex;
             align-items: center;
@@ -1379,7 +1386,7 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 3.1 🔥
+                    גרסה 3.3 🔥
                 </div>
             </div>
         </div>
@@ -1666,6 +1673,11 @@
                 document.getElementById('btnBackup').classList.remove('hidden');
                 document.getElementById('btnRestore').classList.remove('hidden');
                 setupAutoBackup();
+            } else {
+                // Hide for all other users
+                document.getElementById('btnDeletionHistory').classList.add('hidden');
+                document.getElementById('btnBackup').classList.add('hidden');
+                document.getElementById('btnRestore').classList.add('hidden');
             }
             
             // Setup Firebase listeners
@@ -2534,11 +2546,7 @@
             div.innerHTML = `
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
-                    <div class="item-header">
-                        <div class="item-title">${item.name}</div>
-                        <div class="item-meta">${meta}</div>
-                    </div>
-                    ${badges ? `<div class="item-badges">${badges}</div>` : ''}
+                    ${item.isPinned ? '📌 ' : ''}${item.name} • ${item.addedByIcon} ${item.addedBy} • 📅 ${addedDate.toLocaleDateString('he-IL')}${item.status === 'purchased' && item.purchasedBy ? ` • ✓ ${item.purchasedBy}` : ''}
                 </div>
                 <div class="item-actions">${actions}</div>
             `;
