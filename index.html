@@ -3,8 +3,8 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים (42px), כפתורים קטנים, responsive!
-    v6.0 (09/02/2026) - 🔧 Backup Fix: תיקון גיבוי (בקשת נתיב אוטומטי אם אין), תאריך יצירה במשימות!
+    v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
+    v6.0 (09/02/2026) - 🎯 Complete Fix: ניהול משתמשים (modal z-index), משימות עצמאיות בפילטר, אייקונים קטנים, responsive!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
     v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
     v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
@@ -34,13 +34,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v6.0 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v6.1 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="6.0">
+    <meta name="version" content="6.1">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Complete Fix: ניהול משתמשים (z-index), משימות עצמאיות, אייקונים קטנים, responsive! 🎯">
+    <meta name="changelog" content="UX Revolution: Input+כפתור באותה שורה, Long-press למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)! 🎯">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1557,7 +1557,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v6.0</div>
+        <div class="version-badge-login">v6.1</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1608,7 +1608,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v6.0</span>
+                        <span class="version-badge-header">v6.1</span>
                     </div>
                 </div>
                 
@@ -1643,14 +1643,15 @@
                 <!-- Tasks Tab -->
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
-                    <div class="card" style="padding-top: 15px;">
-                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="margin-bottom: 12px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                    <div class="card" style="padding: 12px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם הפריט..." style="flex: 1; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                            <button class="btn btn-primary" onclick="addQuickTask()" style="white-space: nowrap; padding: 10px 20px;">
+                                ➕ הוסף
+                            </button>
+                        </div>
                         
                         <div class="assignee-grid" id="quickAssigneeGrid"></div>
-                        
-                        <button class="btn btn-primary" onclick="addQuickTask()" style="width: 100%; margin-top: 12px;">
-                            ➕ הוסף
-                        </button>
                     </div>
                     
                     <!-- Search Box -->
@@ -2734,16 +2735,14 @@
                 actions += `<button class="btn-icon btn-delete" onclick="deleteTask('${task.id}')">🗑️</button>`;
             }
             
-            actions += `<button class="btn-icon btn-pin" onclick="togglePinTask('${task.id}')">${task.isPinned ? '📌' : '📌'}</button>`;
-            
-            const notesCount = task.notes ? task.notes.length : 0;
-            actions += `<button class="btn-icon btn-notes" onclick="openNotesModal('${task.id}')">
-                ${notesCount > 0 ? `<span class="note-badge">${notesCount}</span>` : ''}
-                💬
-            </button>`;
-            
             // Add to Calendar button - always show
             actions += `<button class="btn-icon btn-calendar" onclick="addToCalendar('${task.id}')" title="הוסף ליומן">📅</button>`;
+            
+            // Creator name (only if different from assignee)
+            let creatorText = '';
+            if (task.createdById && task.createdBy && task.createdById !== task.assignedTo) {
+                creatorText = ` <span style="font-size: 0.75rem; color: #666;">(${task.createdBy})</span>`;
+            }
             
             div.innerHTML = `
                 <div class="swipe-indicator left">✓</div>
@@ -2752,7 +2751,7 @@
                 <div class="swipe-indicator down">⬇️</div>
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
-                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${task.assignedToIcon} ${task.assignedToName}${task.createdAt ? ` • ${new Date(task.createdAt).toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
+                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${task.assignedToIcon} ${task.assignedToName}${task.createdAt ? ` • ${new Date(task.createdAt).toLocaleDateString('he-IL')}${creatorText}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
                 </div>
                 <div class="item-actions">${actions}</div>
             `;
@@ -2770,12 +2769,25 @@
             let currentX = 0;
             let currentY = 0;
             let isSwiping = false;
+            let longPressTimer = null;
+            let canSwipeVertical = false;
             
             element.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 isSwiping = false;
+                canSwipeVertical = false;
                 element.classList.add('swiping');
+                
+                // Start long press timer for vertical swipe
+                longPressTimer = setTimeout(() => {
+                    canSwipeVertical = true;
+                    // Vibrate if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                    showToast('עכשיו ניתן להזיז למעלה/למטה');
+                }, 2000); // 2 seconds
             });
             
             element.addEventListener('touchmove', (e) => {
@@ -2786,6 +2798,14 @@
                 
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
+                
+                // Cancel long press if moved too much
+                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                }
                 
                 // Only swipe if horizontal movement is dominant
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
@@ -2810,8 +2830,8 @@
                         leftIndicator.classList.remove('visible');
                         rightIndicator.classList.remove('visible');
                     }
-                } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Swipe vertical
+                } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
+                    // Swipe vertical - ONLY after long press
                     e.preventDefault();
                     isSwiping = true;
                     element.style.transform = `translateY(${diffY}px)`;
@@ -2836,6 +2856,12 @@
             });
             
             element.addEventListener('touchend', (e) => {
+                // Clear long press timer
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                
                 if (!isSwiping) {
                     resetSwipe();
                     return;
@@ -2856,12 +2882,12 @@
                         uncompleteTask(task.id);
                     }
                 }
-                // Swipe up (move task up)
-                else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
+                // Swipe up (move task up) - ONLY if long press was activated
+                else if (canSwipeVertical && diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
                     moveTaskUp(task.id);
                 }
-                // Swipe down (move task down)
-                else if (diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
+                // Swipe down (move task down) - ONLY if long press was activated
+                else if (canSwipeVertical && diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
                     moveTaskDown(task.id);
                 }
                 
@@ -2876,6 +2902,7 @@
                     currentX = 0;
                     currentY = 0;
                     isSwiping = false;
+                    canSwipeVertical = false;
                 }
             });
         }
@@ -4078,7 +4105,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '6.0'
+                    version: '6.1'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4159,7 +4186,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '6.0'
+                    version: '6.1'
                 };
                 
                 const dataStr = JSON.stringify(backupData, null, 2);
