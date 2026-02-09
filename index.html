@@ -3,9 +3,11 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v8.4 (10/02/2026) - ⏱️ Timing Perfect: long-press הוארך ל-0.5 שניות לנוחות מקסימלית!
-    v8.3 (10/02/2026) - 🎯 Perfect Reordering: לחיצה 0.5s + גרירה ↑ לראש / ↓ לסוף! גלילה רגילה עובדת תמיד!
-    v8.2 (10/02/2026) - 🎯 Critical Fix: גלילה vs החלקה תוקן! preventDefault רק בהחלקה, לא בגלילה רגילה!
+    v8.6 (10/02/2026) - 🗑️ Delete Shopping: הוספת כפתור מחיקה לקניות! כמו במשימות - רק ל-Admin!
+    v8.5 (10/02/2026) - ⏱️ Extra Safe: long-press הוארך ל-2 שניות מלאות!
+    v8.4 (10/02/2026) - ⏱️ Timing Perfect: long-press 0.5 שניות + גרירה ↑ לראש / ↓ לסוף!
+    v8.3 (10/02/2026) - 🎯 Perfect Reordering: לחיצה + גרירה אנכית! גלילה רגילה עובדת תמיד!
+    v8.2 (10/02/2026) - 🎯 Critical Fix: גלילה vs החלקה תוקן! preventDefault רק בהחלקה!
     v8.1 (10/02/2026) - 🎯 UX Perfect: כפתור הוסף מתחת לאנשים, "לחץ לבחירה:", גיבוי נייד משופר!
     v8.0 (09/02/2026) - 💜 LOBALI Rebranding: מסך התחברות חדש עם לוגו L, כל האפליקציה נשארה זהה!
     v6.1 (09/02/2026) - 🎨 UX Revolution: Input+כפתור בשורה אחת, Long-press (2 שניות) למעלה/למטה, מחיקת 💬📌, הוספת (יוצר)!
@@ -39,13 +41,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v8.4 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v8.6 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="8.4">
+    <meta name="version" content="8.6">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Timing Perfect: long-press הוארך ל-0.5 שניות לנוחות מקסימלית! ⏱️">
+    <meta name="changelog" content="Delete Shopping: הוספת כפתור מחיקה לקניות! 🗑️">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1615,7 +1617,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v8.4</div>
+        <div class="version-badge-login">v8.6</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1675,7 +1677,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v8.4</span>
+                        <span class="version-badge-header">v8.6</span>
                     </div>
                 </div>
                 
@@ -3543,6 +3545,17 @@
             
             const addedDate = new Date(item.addedAt);
             
+            // Build action buttons
+            let actions = '';
+            
+            if (item.status === 'pending') {
+                actions += `<button class="btn-icon btn-complete" onclick="purchaseItem('${item.id}')">✓</button>`;
+            }
+            
+            if (isAdmin) {
+                actions += `<button class="btn-icon btn-delete" onclick="deleteShoppingItem('${item.id}')">🗑️</button>`;
+            }
+            
             div.innerHTML = `
                 <div class="swipe-indicator left">✓</div>
                 <div class="swipe-indicator right">↩️</div>
@@ -3552,6 +3565,7 @@
                 <div class="item-content">
                     ${item.isPinned ? '📌 ' : ''}${item.name} • ${item.addedByIcon} ${item.addedBy} • 📅 ${addedDate.toLocaleDateString('he-IL')}${item.status === 'purchased' && item.purchasedBy ? ` • ✓ ${item.purchasedBy}` : ''}
                 </div>
+                <div class="item-actions">${actions}</div>
             `;
             
             // Add touch handlers for swipe
