@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v4.1 (09/02/2026) - 🎨 Professional Design: עיצוב נקי, Swipe Actions (←→↑), ניהול משתמשים, רשומה נקנתה עם קו
     v4.0 (09/02/2026) - 🚀 Mobile First Revolution: Header דק (50px), FAB צף, "המשימות שלי" ברירת מחדל, עיצוב מודרני
     v3.4 (09/02/2026) - עיצוב סופר קומפקטי: שורה אחת דקה (גם משימות וגם קניות, כולל מובייל)
     v3.3 (09/02/2026) - עיצוב קומפקטי: שורות דקות לפריטי קנייה (שורה אחת עם כל המידע)
@@ -23,13 +24,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v4.0 🚀</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v4.1 🚀</title>
     
     <!-- Version Info -->
-    <meta name="version" content="4.0">
+    <meta name="version" content="4.1">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Mobile First Design - Header דק, FAB, המשימות שלי">
+    <meta name="changelog" content="Professional Design + Swipe Actions + User Management">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -49,17 +50,18 @@
             --color-ariel: #4CAF50;
             --color-ann: #FF9800;
             
-            --bg-main: #FFF8F3;
+            --bg-main: #F5F5F5;
             --bg-card: #FFFFFF;
-            --text-primary: #2D1B12;
-            --text-secondary: #6B5548;
-            --shadow-sm: 0 2px 8px rgba(139, 69, 19, 0.08);
-            --shadow-md: 0 4px 16px rgba(139, 69, 19, 0.12);
-            --shadow-lg: 0 8px 32px rgba(139, 69, 19, 0.16);
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #E0E0E0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 2px 6px rgba(0,0,0,0.15);
+            --shadow-lg: 0 4px 12px rgba(0,0,0,0.18);
             
-            --radius-sm: 12px;
-            --radius-md: 20px;
-            --radius-lg: 28px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
         }
         
         * {
@@ -70,46 +72,17 @@
         
         body {
             font-family: 'Rubik', sans-serif;
-            background: linear-gradient(135deg, #FFF8F3 0%, #FFE5D9 100%);
+            background: var(--bg-main);
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
             position: relative;
             overflow-x: hidden;
         }
-        
-        /* Decorative background elements */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255, 152, 0, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
             z-index: 0;
             animation: float 20s ease-in-out infinite;
         }
         
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            left: -15%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(33, 150, 243, 0.08) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: 0;
-            animation: float 15s ease-in-out infinite reverse;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(5deg); }
-            66% { transform: translate(-20px, 20px) rotate(-5deg); }
-        }
         
         @keyframes slideUp {
             from {
@@ -324,13 +297,13 @@
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #E91E63, #FF6B9D);
+            background: #2196F3;
             color: white;
             border: none;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
-            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.2s;
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -338,8 +311,9 @@
         }
         
         .fab:hover {
-            transform: scale(1.1) rotate(90deg);
-            box-shadow: 0 6px 24px rgba(233, 30, 99, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            background: #1976D2;
         }
         
         .fab:active {
@@ -477,35 +451,91 @@
         
         /* Task/Shopping Item */
         .item {
-            background: linear-gradient(135deg, #FFF 0%, #FAFAFA 100%);
+            background: white;
             border-radius: var(--radius-sm);
-            padding: 8px 12px;
-            margin-bottom: 8px;
-            border-right: 4px solid transparent;
-            transition: all 0.3s;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
             position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            touch-action: pan-y;
+            user-select: none;
         }
         
-        .item:hover {
-            transform: translateX(-3px);
-            box-shadow: var(--shadow-sm);
+        .item:active {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .item.swiping {
+            transition: none;
+        }
+        
+        .item.swipe-left {
+            background: #E8F5E9;
+        }
+        
+        .item.swipe-right {
+            background: #FFF3E0;
+        }
+        
+        .item.swipe-up {
+            background: #E3F2FD;
         }
         
         .item.pinned {
-            border-right-color: #E91E63;
-            background: linear-gradient(135deg, #FFF0F5 0%, #FFE5EE 100%);
+            border-left: 4px solid #E91E63;
+            background: #FFF0F5;
         }
         
         .item.completed {
-            opacity: 0.65;
+            opacity: 0.6;
+            background: #F5F5F5;
         }
         
-        .item.completed .item-title {
+        .item.completed .item-content {
             text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+        
+        .item.purchased {
+            opacity: 0.5;
+            background: #FAFAFA;
+        }
+        
+        .item.purchased .item-content {
+            text-decoration: line-through;
+            color: #9E9E9E;
+        }
+        
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .swipe-indicator.left {
+            right: 20px;
+        }
+        
+        .swipe-indicator.right {
+            left: 20px;
+        }
+        
+        .swipe-indicator.up {
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .swipe-indicator.visible {
+            opacity: 1;
         }
         
         .item-number {
@@ -1277,6 +1307,30 @@
             color: #2E7D32;
         }
         
+        .user-management {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .btn-manage {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Rubik', sans-serif;
+            color: var(--text-primary);
+        }
+        
+        .btn-manage:hover {
+            background: #F5F5F5;
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .main-layout {
@@ -1350,6 +1404,13 @@
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
+        
+        <!-- User Management -->
+        <div class="user-management">
+            <button class="btn-manage" onclick="openAddUserModal()">
+                ➕ הוסף משתמש
+            </button>
+        </div>
     </div>
 
     <!-- Main App -->
@@ -1478,7 +1539,7 @@
                 </div>
                 
                 <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 4.0 🔥
+                    גרסה 4.1 🚀
                 </div>
             </div>
         </div>
@@ -1737,6 +1798,10 @@
             currentUser = familyMembers[userId];
             localStorage.setItem('currentUser', userId);
             showMainApp();
+        }
+        
+        function openAddUserModal() {
+            alert('🚧 תכונת ניהול משתמשים תתווסף בגרסה הבאה!\n\nבינתיים, ניתן להוסיף משתמשים דרך קוד JavaScript.');
         }
         
         function showMainApp() {
@@ -2635,50 +2700,150 @@
         
         function createShoppingElement(item, index) {
             const div = document.createElement('div');
-            div.className = `item ${item.isPinned ? 'pinned' : ''} ${item.status === 'purchased' ? 'completed' : ''}`;
+            div.className = `item ${item.isPinned ? 'pinned' : ''} ${item.status === 'purchased' ? 'purchased' : ''}`;
+            div.dataset.itemId = item.id;
             
             const isAdmin = currentUser.isAdmin;
             
-            let badges = '';
-            if (item.isPinned) {
-                badges += '<span class="badge badge-pinned">📌</span>';
-            }
-            
-            let meta = `<span class="user-chip" style="background-color: ${item.addedByColor}22; color: ${item.addedByColor}">${item.addedByIcon} ${item.addedBy}</span>`;
-            
             const addedDate = new Date(item.addedAt);
-            meta += ` • 📅 ${addedDate.toLocaleDateString('he-IL')}`;
-            
-            if (item.status === 'purchased' && item.purchasedBy) {
-                const purchasedDate = new Date(item.purchasedAt);
-                meta += ` • ✓ ${item.purchasedBy}`;
-            }
-            
-            let actions = '';
-            
-            if (item.status === 'pending') {
-                if (isAdmin) {
-                    actions += `<button class="btn-icon btn-complete" onclick="purchaseItem('${item.id}')">✓</button>`;
-                }
-            } else if (item.status === 'purchased') {
-                actions += `<button class="btn-icon" onclick="unpurchaseItem('${item.id}')">↩️</button>`;
-            }
-            
-            if (isAdmin) {
-                actions += `<button class="btn-icon btn-delete" onclick="deleteShoppingItem('${item.id}')">🗑️</button>`;
-            }
-            
-            actions += `<button class="btn-icon btn-pin" onclick="togglePinShoppingItem('${item.id}')">${item.isPinned ? '📌' : '📌'}</button>`;
             
             div.innerHTML = `
+                <div class="swipe-indicator left">✓</div>
+                <div class="swipe-indicator right">↩️</div>
+                <div class="swipe-indicator up">⬆️</div>
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
                     ${item.isPinned ? '📌 ' : ''}${item.name} • ${item.addedByIcon} ${item.addedBy} • 📅 ${addedDate.toLocaleDateString('he-IL')}${item.status === 'purchased' && item.purchasedBy ? ` • ✓ ${item.purchasedBy}` : ''}
                 </div>
-                <div class="item-actions">${actions}</div>
             `;
             
+            // Add touch handlers for swipe
+            setupSwipeHandlers(div, item);
+            
             return div;
+        }
+        
+        // Swipe Handler Setup
+        function setupSwipeHandlers(element, item) {
+            let startX = 0;
+            let startY = 0;
+            let currentX = 0;
+            let currentY = 0;
+            let isSwiping = false;
+            
+            element.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isSwiping = false;
+                element.classList.add('swiping');
+            });
+            
+            element.addEventListener('touchmove', (e) => {
+                if (!startX || !startY) return;
+                
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
+                
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+                
+                // Only swipe if horizontal movement is dominant
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                    e.preventDefault();
+                    isSwiping = true;
+                    element.style.transform = `translateX(${diffX}px)`;
+                    
+                    // Show indicators
+                    const leftIndicator = element.querySelector('.swipe-indicator.left');
+                    const rightIndicator = element.querySelector('.swipe-indicator.right');
+                    
+                    if (diffX < -50) {
+                        element.classList.add('swipe-left');
+                        leftIndicator.classList.add('visible');
+                        rightIndicator.classList.remove('visible');
+                    } else if (diffX > 50) {
+                        element.classList.add('swipe-right');
+                        rightIndicator.classList.add('visible');
+                        leftIndicator.classList.remove('visible');
+                    } else {
+                        element.classList.remove('swipe-left', 'swipe-right');
+                        leftIndicator.classList.remove('visible');
+                        rightIndicator.classList.remove('visible');
+                    }
+                } else if (Math.abs(diffY) > Math.abs(diffX) && diffY < -30) {
+                    // Swipe up
+                    e.preventDefault();
+                    isSwiping = true;
+                    element.style.transform = `translateY(${diffY}px)`;
+                    element.classList.add('swipe-up');
+                    element.querySelector('.swipe-indicator.up').classList.add('visible');
+                }
+            });
+            
+            element.addEventListener('touchend', (e) => {
+                if (!isSwiping) {
+                    resetSwipe();
+                    return;
+                }
+                
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+                
+                // Swipe left (mark as purchased)
+                if (diffX < -100 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (item.status === 'pending') {
+                        purchaseItem(item.id);
+                    }
+                }
+                // Swipe right (unmark as purchased)
+                else if (diffX > 100 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (item.status === 'purchased') {
+                        unpurchaseItem(item.id);
+                    }
+                }
+                // Swipe up (move up in list)
+                else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
+                    moveShoppingItemUp(item.id);
+                }
+                
+                resetSwipe();
+                
+                function resetSwipe() {
+                    element.classList.remove('swiping', 'swipe-left', 'swipe-right', 'swipe-up');
+                    element.style.transform = '';
+                    element.querySelectorAll('.swipe-indicator').forEach(ind => ind.classList.remove('visible'));
+                    startX = 0;
+                    startY = 0;
+                    currentX = 0;
+                    currentY = 0;
+                    isSwiping = false;
+                }
+            });
+        }
+        
+        // Move shopping item up in the list
+        function moveShoppingItemUp(itemId) {
+            const item = shopping[itemId];
+            if (!item) return;
+            
+            // Increase priority by setting addedAt to now
+            isSyncing = true;
+            updateSyncStatus();
+            
+            shoppingRef.child(itemId).update({
+                addedAt: Date.now()
+            })
+                .then(() => {
+                    showToast('⬆️ הפריט הועלה למעלה ברשימה');
+                })
+                .catch(error => {
+                    console.error('Error moving item:', error);
+                    alert('❌ שגיאה בהעלאת הפריט');
+                })
+                .finally(() => {
+                    isSyncing = false;
+                    updateSyncStatus();
+                });
         }
         
         function purchaseItem(itemId) {
