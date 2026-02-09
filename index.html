@@ -3,7 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v5.7 (09/02/2026) - 🎨 UI Polish: אייקונים קטנים (כולם בשורה), קארד נקי ללא כותרת!
+    v5.8 (09/02/2026) - 🎯 UX Perfect: משימות עצמאיות אוטומטי, 📅 תמיד מוצג, אייקונים מיני (52px), Header צר (8px)!
     v5.6 (09/02/2026) - 🔧 Major Fixes: Swipe ↑↓ עובד, תאריך השלמה, ביטול סיסמה לחגי, גיבוי במובייל!
     v5.5 (09/02/2026) - 🔧 Bug Fixes: תיקון ניהול משתמשים + Google Calendar אירוע לשעה אחת במקום כל היום!
     v5.4 (09/02/2026) - 🏷️ Version Display: מספר גרסה מוצג במסך התחברות וב-Header!
@@ -33,13 +33,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v5.7 🌟</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.8 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="5.7">
+    <meta name="version" content="5.8">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="UI Polish: אייקונים קטנים יותר, קארד נקי! 🎨">
+    <meta name="changelog" content="UX Perfect: משימות עצמאיות אוטומטי, 📅 תמיד, אייקונים מיני, Header צר! 🎯">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -127,7 +127,7 @@
         header {
             background: white;
             border-bottom: 1px solid rgba(0,0,0,0.08);
-            padding: 12px 20px;
+            padding: 8px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -147,28 +147,28 @@
         .user-info-compact {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .user-avatar-small {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
         }
         
         .user-details-compact {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
         }
         
         .user-name-small {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-primary);
         }
         
         .user-role-small {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
         }
         
@@ -840,13 +840,13 @@
         /* Assignee Selection */
         .assignee-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
-            gap: 8px;
-            margin-top: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
         }
         
         .assignee-btn {
-            padding: 8px;
+            padding: 5px;
             border: 2px solid transparent;
             border-radius: var(--radius-sm);
             cursor: pointer;
@@ -857,7 +857,7 @@
         }
         
         .assignee-btn:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
         }
         
@@ -867,13 +867,13 @@
         }
         
         .assignee-icon {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
         }
         
         .assignee-name {
             font-weight: 600;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
         }
         
         /* Priority Selection */
@@ -1520,7 +1520,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v5.7</div>
+        <div class="version-badge-login">v5.8</div>
         <h1 class="login-title">👨‍👩‍👧‍👦 משימות משפחתיות</h1>
         <p class="login-subtitle">בחרו את חבר המשפחה</p>
         <div class="login-grid" id="loginGrid"></div>
@@ -1571,7 +1571,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v5.7</span>
+                        <span class="version-badge-header">v5.8</span>
                     </div>
                 </div>
                 
@@ -2412,7 +2412,7 @@
                 createdBy: currentUser.name,
                 createdById: currentUser.id,
                 isPinned: false,
-                isPersonal: false,
+                isPersonal: assignee.id === currentUser.id, // ← משימה עצמאית אם מוסיף לעצמו
                 isRecurring: false,
                 dueDate: null
             };
@@ -2685,10 +2685,8 @@
                 💬
             </button>`;
             
-            // Add to Calendar button (only if task has due date)
-            if (task.dueDate) {
-                actions += `<button class="btn-icon btn-calendar" onclick="addToCalendar('${task.id}')" title="הוסף ליומן">📅</button>`;
-            }
+            // Add to Calendar button - always show
+            actions += `<button class="btn-icon btn-calendar" onclick="addToCalendar('${task.id}')" title="הוסף ליומן">📅</button>`;
             
             div.innerHTML = `
                 <div class="swipe-indicator left">✓</div>
@@ -2958,10 +2956,8 @@
             const task = tasks[taskId];
             if (!task) return;
             
-            if (!task.dueDate) {
-                alert('❌ למשימה אין תאריך יעד');
-                return;
-            }
+            // Use task's dueDate or today's date as default
+            const dueDate = task.dueDate ? new Date(task.dueDate) : new Date();
             
             // Format task details for Google Calendar
             const title = task.title;
@@ -2972,7 +2968,6 @@
             const fullDescription = `${description}\n\n${priority}\n${assignedTo}`;
             
             // Format date for Google Calendar (YYYYMMDDTHHMMSS format)
-            const dueDate = new Date(task.dueDate);
             const startDate = new Date(dueDate);
             startDate.setHours(9, 0, 0); // Set to 9:00 AM
             
