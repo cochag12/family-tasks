@@ -516,8 +516,9 @@
             align-items: center;
             gap: 10px;
             font-size: 0.9rem;
-            touch-action: pan-y;
+            touch-action: none;
             user-select: none;
+            -webkit-user-select: none;
         }
         
         .item:active {
@@ -1707,7 +1708,7 @@
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
-                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
                             <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
                             <button class="btn btn-primary" onclick="addQuickTask()" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">
                                 ➕ הוסף
@@ -2879,14 +2880,14 @@
                 canSwipeVertical = false;
                 element.classList.add('swiping');
                 
-                // Start long press timer for vertical swipe (0.5 seconds)
+                // Start long press timer for vertical swipe (0.2 seconds)
                 longPressTimer = setTimeout(() => {
                     canSwipeVertical = true;
                     // Vibrate if available
                     if (navigator.vibrate) {
                         navigator.vibrate(30);
                     }
-                }, 500);
+                }, 200);
             });
             
             element.addEventListener('touchmove', (e) => {
@@ -2898,19 +2899,22 @@
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
                 
+                // Prevent scroll/refresh when there's any significant movement
+                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
+                }
+                
                 // Cancel long press if moved horizontally
                 if (Math.abs(diffX) > 10 && longPressTimer) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
                 
-                // Only swipe if horizontal movement is dominant
+                // Horizontal swipe (immediate)
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
-                    e.preventDefault();
-                    isSwiping = true;
                     element.style.transform = `translateX(${diffX}px)`;
                     
-                    // Show indicators
                     const leftIndicator = element.querySelector('.swipe-indicator.left');
                     const rightIndicator = element.querySelector('.swipe-indicator.right');
                     
@@ -2928,29 +2932,25 @@
                         rightIndicator.classList.remove('visible');
                     }
                 } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Swipe vertical - ONLY after long press
-                    e.preventDefault();
-                    isSwiping = true;
+                    // Vertical swipe (only after 200ms long press)
                     element.style.transform = `translateY(${diffY}px)`;
                     
                     const upIndicator = element.querySelector('.swipe-indicator.up');
                     const downIndicator = element.querySelector('.swipe-indicator.down');
                     
                     if (diffY < -30) {
-                        // Swipe up
                         element.classList.add('swipe-up');
                         element.classList.remove('swipe-down');
                         upIndicator.classList.add('visible');
                         downIndicator.classList.remove('visible');
                     } else if (diffY > 30) {
-                        // Swipe down
                         element.classList.add('swipe-down');
                         element.classList.remove('swipe-up');
                         downIndicator.classList.add('visible');
                         upIndicator.classList.remove('visible');
                     }
                 }
-            });
+            }, { passive: false });
             
             element.addEventListener('touchend', (e) => {
                 // Clear long press timer
@@ -3569,14 +3569,14 @@
                 canSwipeVertical = false;
                 element.classList.add('swiping');
                 
-                // Start long press timer for vertical swipe (0.5 seconds)
+                // Start long press timer for vertical swipe (0.2 seconds)
                 longPressTimer = setTimeout(() => {
                     canSwipeVertical = true;
                     // Vibrate if available
                     if (navigator.vibrate) {
                         navigator.vibrate(30);
                     }
-                }, 500);
+                }, 200);
             });
             
             element.addEventListener('touchmove', (e) => {
@@ -3588,19 +3588,22 @@
                 const diffX = currentX - startX;
                 const diffY = currentY - startY;
                 
+                // Prevent scroll/refresh when there's any significant movement
+                if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+                    if (e.cancelable) e.preventDefault();
+                    isSwiping = true;
+                }
+                
                 // Cancel long press if moved horizontally
                 if (Math.abs(diffX) > 10 && longPressTimer) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
                 
-                // Only swipe if horizontal movement is dominant
+                // Horizontal swipe (immediate)
                 if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
-                    e.preventDefault();
-                    isSwiping = true;
                     element.style.transform = `translateX(${diffX}px)`;
                     
-                    // Show indicators
                     const leftIndicator = element.querySelector('.swipe-indicator.left');
                     const rightIndicator = element.querySelector('.swipe-indicator.right');
                     
@@ -3618,29 +3621,25 @@
                         rightIndicator.classList.remove('visible');
                     }
                 } else if (canSwipeVertical && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
-                    // Swipe vertical - ONLY after long press
-                    e.preventDefault();
-                    isSwiping = true;
+                    // Vertical swipe (only after 200ms long press)
                     element.style.transform = `translateY(${diffY}px)`;
                     
                     const upIndicator = element.querySelector('.swipe-indicator.up');
                     const downIndicator = element.querySelector('.swipe-indicator.down');
                     
                     if (diffY < -30) {
-                        // Swipe up
                         element.classList.add('swipe-up');
                         element.classList.remove('swipe-down');
                         upIndicator.classList.add('visible');
                         downIndicator.classList.remove('visible');
                     } else if (diffY > 30) {
-                        // Swipe down
                         element.classList.add('swipe-down');
                         element.classList.remove('swipe-up');
                         downIndicator.classList.add('visible');
                         upIndicator.classList.remove('visible');
                     }
                 }
-            });
+            }, { passive: false });
             
             element.addEventListener('touchend', (e) => {
                 // Clear long press timer
@@ -4119,19 +4118,19 @@
         async function setupAutoBackup() {
             if (!currentUser.canBackup) return;
             
-            // Check if File System Access API is supported (works on some mobile browsers)
+            // Check if File System Access API is supported (Desktop only)
             if (!('showDirectoryPicker' in window)) {
-                console.log('📱 הדפדפן לא תומך ב-File System Access API - גיבוי ידני זמין');
+                console.log('📱 נייד: גיבוי אוטומטי לא זמין - השתמש בכפתור 💾 לגיבוי ידני');
                 return;
             }
             
-            console.log('✅ מערכת גיבוי אוטומטי זמינה');
+            console.log('✅ מערכת גיבוי אוטומטי זמינה (Desktop)');
             
             // Check if this is first time
             const autoBackupEnabled = localStorage.getItem('autoBackupEnabled');
             
             if (autoBackupEnabled === null) {
-                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.\n\n📱 עובד גם בדפדפנים נתמכים בנייד!');
+                const confirmed = confirm('היי חגי! 🔐\n\nהאם להפעיל גיבוי אוטומטי?\n\nהמערכת תשמור את כל הנתונים בתיקייה שתבחר בכל כניסה ויציאה.\n\n💻 זמין רק במחשב!');
                 
                 if (confirmed) {
                     localStorage.setItem('autoBackupEnabled', 'true');
@@ -4147,20 +4146,22 @@
                     const savedHandle = await loadDirectoryHandle();
                     
                     if (savedHandle) {
-                        const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
-                        
-                        if (permission === 'granted') {
-                            backupDirectoryHandle = savedHandle;
-                            console.log('✅ נתיב גיבוי טעון מהזיכרון');
-                            await performBackup(true);
-                        } else {
-                            const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
-                            if (newPermission === 'granted') {
+                        if (typeof savedHandle.queryPermission === 'function') {
+                            const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                            
+                            if (permission === 'granted') {
                                 backupDirectoryHandle = savedHandle;
-                                console.log('✅ הרשאת גיבוי חודשה');
+                                console.log('✅ נתיב גיבוי טעון מהזיכרון');
                                 await performBackup(true);
-                            } else {
-                                console.log('⚠️ הרשאה נדחתה - גיבוי אוטומטי לא פעיל');
+                            } else if (typeof savedHandle.requestPermission === 'function') {
+                                const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                                if (newPermission === 'granted') {
+                                    backupDirectoryHandle = savedHandle;
+                                    console.log('✅ הרשאת גיבוי חודשה');
+                                    await performBackup(true);
+                                } else {
+                                    console.log('⚠️ הרשאה נדחתה - גיבוי אוטומטי לא פעיל');
+                                }
                             }
                         }
                     } else {
@@ -4215,12 +4216,19 @@
             }
             
             try {
-                // Check permission silently - queryPermission never shows a dialog
-                const permission = await backupDirectoryHandle.queryPermission({ mode: 'readwrite' });
-                if (permission !== 'granted') {
-                    // Permission lost - don't show any dialog, just skip silently
-                    if (!silent) console.warn('Backup folder permission not granted, skipping backup');
-                    return false;
+                // Check permission silently - only if queryPermission is supported
+                if (typeof backupDirectoryHandle.queryPermission === 'function') {
+                    try {
+                        const permission = await backupDirectoryHandle.queryPermission({ mode: 'readwrite' });
+                        if (permission !== 'granted') {
+                            // Permission lost - don't show any dialog, just skip silently
+                            if (!silent) console.warn('Backup folder permission not granted, skipping backup');
+                            return false;
+                        }
+                    } catch (permErr) {
+                        // queryPermission might fail on some mobile browsers - continue anyway
+                        console.log('⚠️ queryPermission failed, attempting backup anyway:', permErr.message);
+                    }
                 }
                 
                 const backupData = {
