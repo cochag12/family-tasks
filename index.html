@@ -3,6 +3,7 @@
     משימות משפחתיות - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v5.0 (09/02/2026) - 🌟 Bottom Nav Revolution: 3 מסכים נפרדים (📋🛒📊), Swipe גם למשימות, סטטיסטיקה נפרדת
     v4.2 (09/02/2026) - 👆 Swipe Perfect: ← נקנה, → ביטול (בלי אישור!), ↑ העלאה, ↓ הורדה
     v4.1 (09/02/2026) - 🎨 Professional Design: עיצוב נקי, Swipe Actions (←→↑), ניהול משתמשים, רשומה נקנתה עם קו
     v4.0 (09/02/2026) - 🚀 Mobile First Revolution: Header דק (50px), FAB צף, "המשימות שלי" ברירת מחדל, עיצוב מודרני
@@ -25,13 +26,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משימות משפחתיות - משפחת חגי וליאת v4.2 🚀</title>
+    <title>משימות משפחתיות - משפחת חגי וליאת v5.0 🌟</title>
     
     <!-- Version Info -->
-    <meta name="version" content="4.2">
+    <meta name="version" content="5.0">
     <meta name="last-updated" content="2026-02-09">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Swipe Perfect: ← נקנה, → ביטול בלי אישור, ↑ העלאה, ↓ הורדה">
+    <meta name="changelog" content="Bottom Nav Revolution: 3 מסכים נפרדים, Swipe למשימות, סטטיסטיקה נפרדת">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -322,61 +323,76 @@
         }
         
         /* Tabs */
-        .tabs {
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border-color);
             display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
+            justify-content: space-around;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
         
-        .tab {
+        .nav-item {
             flex: 1;
-            padding: 20px;
-            background: var(--bg-card);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            border: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
             cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 600;
+            transition: all 0.2s;
             position: relative;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
         }
         
-        .tab:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
+        .nav-item:active {
+            transform: scale(0.95);
         }
         
-        .tab.active {
-            border-color: #E91E63;
-            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.25);
-            background: linear-gradient(135deg, #FFF 0%, #FFE5EE 100%);
+        .nav-item.active {
+            color: #2196F3;
         }
         
-        .tab-count {
-            display: inline-block;
+        .nav-icon {
+            font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .nav-item.active .nav-icon {
+            transform: scale(1.1);
+        }
+        
+        .nav-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .nav-badge {
+            position: absolute;
+            top: 4px;
+            right: 20%;
             background: #E91E63;
             color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            margin-right: 8px;
-            min-width: 25px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
             text-align: center;
-        }
-        
-        .tab.active .tab-count {
-            background: white;
-            color: #E91E63;
         }
         
         /* Main Layout */
         .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 30px;
+            padding-bottom: 80px;
         }
         
         @media (max-width: 1024px) {
@@ -1462,18 +1478,6 @@
             </div>
         </header>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('tasks')">
-                <span class="tab-count" id="tasksTabCount">0</span>
-                📋 משימות
-            </div>
-            <div class="tab" onclick="switchTab('shopping')">
-                <span class="tab-count" id="shoppingTabCount">0</span>
-                🛒 קניות
-            </div>
-        </div>
-
         <!-- Main Layout -->
         <div class="main-layout">
             <!-- Main Content -->
@@ -1536,22 +1540,18 @@
                     <!-- Shopping List -->
                     <div id="shoppingList"></div>
                 </div>
-            </div>
-
-            <!-- Statistics Sidebar -->
-            <div class="sidebar">
-                <div class="card" id="statsCard">
-                    <h3 class="card-title">📊 סטטיסטיקות</h3>
-                    <div id="statsContainer"></div>
-                </div>
-
-                <div class="card" id="topPerformersCard">
-                    <h3 class="card-title">🏆 כוכבי השבוע</h3>
-                    <div id="topPerformers"></div>
-                </div>
                 
-                <div style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.6;">
-                    גרסה 4.2 🚀
+                <!-- Stats Screen -->
+                <div id="statsScreen" class="tab-content hidden">
+                    <div class="card">
+                        <h3 class="card-title">📊 סטטיסטיקות</h3>
+                        <div id="statsContainer"></div>
+                    </div>
+
+                    <div class="card" id="topPerformersCard">
+                        <h3 class="card-title">🏆 כוכבי השבוע</h3>
+                        <div id="topPerformers"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1560,6 +1560,24 @@
         <button class="fab" onclick="openFABModal()" title="הוסף פריט חדש">
             ➕
         </button>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="switchScreen('tasks')" id="navTasks">
+                <span class="nav-badge" id="navTasksBadge">0</span>
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">משימות</div>
+            </button>
+            <button class="nav-item" onclick="switchScreen('shopping')" id="navShopping">
+                <span class="nav-badge" id="navShoppingBadge">0</span>
+                <div class="nav-icon">🛒</div>
+                <div class="nav-label">קניות</div>
+            </button>
+            <button class="nav-item" onclick="switchScreen('stats')" id="navStats">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">סטטיסטיקה</div>
+            </button>
+        </div>
     </div>
 
     <!-- Add Task Modal -->
@@ -1825,12 +1843,12 @@
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('userRole').textContent = currentUser.role;
             
-            // Show/hide stats card - only for admins (Liat and Hagai)
-            const statsCard = document.getElementById('statsCard');
+            // Show/hide stats screen navigation - only for admins
+            const navStats = document.getElementById('navStats');
             if (currentUser.isAdmin) {
-                statsCard.classList.remove('hidden');
+                navStats.style.display = 'flex';
             } else {
-                statsCard.classList.add('hidden');
+                navStats.style.display = 'none';
             }
             
             // Show/hide top performers card - only for Hagai
@@ -1926,18 +1944,18 @@
             const allShopping = Object.values(shopping);
             const pendingShopping = allShopping.filter(i => i.status === 'pending').length;
             
-            // Update tab counts
-            const tasksTabCount = document.getElementById('tasksTabCount');
-            const shoppingTabCount = document.getElementById('shoppingTabCount');
+            // Update bottom nav badges
+            const navTasksBadge = document.getElementById('navTasksBadge');
+            const navShoppingBadge = document.getElementById('navShoppingBadge');
             
-            if (tasksTabCount) {
-                tasksTabCount.textContent = pendingTasks;
-                tasksTabCount.style.display = pendingTasks > 0 ? 'inline-block' : 'none';
+            if (navTasksBadge) {
+                navTasksBadge.textContent = pendingTasks;
+                navTasksBadge.style.display = pendingTasks > 0 ? 'block' : 'none';
             }
             
-            if (shoppingTabCount) {
-                shoppingTabCount.textContent = pendingShopping;
-                shoppingTabCount.style.display = pendingShopping > 0 ? 'inline-block' : 'none';
+            if (navShoppingBadge) {
+                navShoppingBadge.textContent = pendingShopping;
+                navShoppingBadge.style.display = pendingShopping > 0 ? 'block' : 'none';
             }
         }
         
@@ -1964,17 +1982,26 @@
         
         // ==================== TABS ====================
         
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+        function switchScreen(screenName) {
+            // Update bottom nav buttons
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('nav' + screenName.charAt(0).toUpperCase() + screenName.slice(1)).classList.add('active');
             
-            // Update tab content
-            document.getElementById('tasksTab').classList.toggle('hidden', tabName !== 'tasks');
-            document.getElementById('shoppingTab').classList.toggle('hidden', tabName !== 'shopping');
+            // Update screen content
+            document.getElementById('tasksTab').classList.toggle('hidden', screenName !== 'tasks');
+            document.getElementById('shoppingTab').classList.toggle('hidden', screenName !== 'shopping');
+            document.getElementById('statsScreen').classList.toggle('hidden', screenName !== 'stats');
+            
+            // Show/hide FAB based on screen
+            const fab = document.querySelector('.fab');
+            if (screenName === 'stats') {
+                fab.style.display = 'none';
+            } else {
+                fab.style.display = 'flex';
+            }
             
             // Clear search when leaving tabs
-            if (tabName !== 'shopping') {
+            if (screenName !== 'shopping') {
                 shoppingSearchQuery = '';
                 const searchInput = document.getElementById('shoppingSearchInput');
                 if (searchInput) {
@@ -1982,13 +2009,18 @@
                 }
             }
             
-            if (tabName !== 'tasks') {
+            if (screenName !== 'tasks') {
                 tasksSearchQuery = '';
                 const searchInput = document.getElementById('tasksSearchInput');
                 if (searchInput) {
                     searchInput.value = '';
                 }
             }
+        }
+        
+        // Keep old switchTab for compatibility
+        function switchTab(tabName) {
+            switchScreen(tabName);
         }
         
         // ==================== TASKS ====================
@@ -2241,6 +2273,7 @@
             const div = document.createElement('div');
             div.className = `item ${task.isPinned ? 'pinned' : ''} ${task.status === 'completed' ? 'completed' : ''}`;
             div.setAttribute('data-task-id', task.id);
+            div.dataset.itemId = task.id;
             
             const priorityLabels = {
                 high: { emoji: '🔴', class: 'badge-priority-high', text: 'גבוהה' },
@@ -2251,62 +2284,140 @@
             const priority = priorityLabels[task.priority];
             const isAdmin = currentUser.isAdmin;
             
-            let badges = '';
-            if (task.isPinned) {
-                badges += '<span class="badge badge-pinned">📌</span>';
-            }
-            if (task.isPersonal) {
-                badges += '<span class="badge badge-personal">🔒</span>';
-            }
-            if (task.isRecurring) {
-                const recurringText = task.recurringType === 'daily' ? 'יומית' : 'שבועית';
-                badges += `<span class="badge" style="background: #E1F5FE; color: #0277BD;">🔄 ${recurringText}</span>`;
-            }
-            badges += `<span class="badge ${priority.class}">${priority.emoji}</span>`;
-            
-            let meta = `<span class="user-chip" style="background-color: ${task.assignedToColor}22; color: ${task.assignedToColor}">${task.assignedToIcon} ${task.assignedToName}</span>`;
-            
-            if (task.dueDate) {
-                const date = new Date(task.dueDate);
-                meta += ` • 📅 ${date.toLocaleDateString('he-IL')}`;
-            }
-            
-            if (task.status === 'completed' && task.completedBy) {
-                const completedDate = new Date(task.completedAt);
-                meta += ` • ✓ ${task.completedBy}`;
-            }
-            
-            let actions = '';
-            
-            if (task.status === 'pending') {
-                actions += `<button class="btn-icon btn-complete" onclick="completeTask('${task.id}')">✓</button>`;
-            }
-            
-            if (isAdmin) {
-                actions += `<button class="btn-icon btn-delete" onclick="deleteTask('${task.id}')">🗑️</button>`;
-            }
-            
-            actions += `<button class="btn-icon btn-pin" onclick="togglePinTask('${task.id}')">${task.isPinned ? '📌' : '📌'}</button>`;
-            
-            const notesCount = task.notes ? task.notes.length : 0;
-            actions += `<button class="btn-icon btn-notes" onclick="openNotesModal('${task.id}')">
-                ${notesCount > 0 ? `<span class="note-badge">${notesCount}</span>` : ''}
-                💬
-            </button>`;
-            
-            if (currentUser.canSpeak) {
-                actions += `<button class="btn-icon btn-read read-btn" onclick="readTask('${task.id}')">🔊</button>`;
-            }
+            const dueDate = task.dueDate ? new Date(task.dueDate) : null;
             
             div.innerHTML = `
+                <div class="swipe-indicator left">✓</div>
+                <div class="swipe-indicator right">↩️</div>
+                <div class="swipe-indicator up">⬆️</div>
+                <div class="swipe-indicator down">⬇️</div>
                 <div class="item-number">${index + 1}.</div>
                 <div class="item-content">
-                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${priority.emoji} • ${task.assignedToIcon} ${task.assignedToName}${task.dueDate ? ` • 📅 ${new Date(task.dueDate).toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
+                    ${task.isPinned ? '📌 ' : ''}${task.isRecurring ? '🔄 ' : ''}${task.isPersonal ? '🔒 ' : ''}${task.title}${task.description ? ` (${task.description})` : ''} • ${priority.emoji} • ${task.assignedToIcon} ${task.assignedToName}${dueDate ? ` • 📅 ${dueDate.toLocaleDateString('he-IL')}` : ''}${task.status === 'completed' && task.completedBy ? ` • ✓ ${task.completedBy}` : ''}
                 </div>
-                <div class="item-actions">${actions}</div>
             `;
             
+            // Add touch handlers for swipe
+            setupTaskSwipeHandlers(div, task);
+            
             return div;
+        }
+        
+        // Swipe Handler Setup for Tasks
+        function setupTaskSwipeHandlers(element, task) {
+            let startX = 0;
+            let startY = 0;
+            let currentX = 0;
+            let currentY = 0;
+            let isSwiping = false;
+            
+            element.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isSwiping = false;
+                element.classList.add('swiping');
+            });
+            
+            element.addEventListener('touchmove', (e) => {
+                if (!startX || !startY) return;
+                
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
+                
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+                
+                // Only swipe if horizontal movement is dominant
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                    e.preventDefault();
+                    isSwiping = true;
+                    element.style.transform = `translateX(${diffX}px)`;
+                    
+                    // Show indicators
+                    const leftIndicator = element.querySelector('.swipe-indicator.left');
+                    const rightIndicator = element.querySelector('.swipe-indicator.right');
+                    
+                    if (diffX < -50) {
+                        element.classList.add('swipe-left');
+                        leftIndicator.classList.add('visible');
+                        rightIndicator.classList.remove('visible');
+                    } else if (diffX > 50) {
+                        element.classList.add('swipe-right');
+                        rightIndicator.classList.add('visible');
+                        leftIndicator.classList.remove('visible');
+                    } else {
+                        element.classList.remove('swipe-left', 'swipe-right');
+                        leftIndicator.classList.remove('visible');
+                        rightIndicator.classList.remove('visible');
+                    }
+                } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 30) {
+                    // Swipe vertical
+                    e.preventDefault();
+                    isSwiping = true;
+                    element.style.transform = `translateY(${diffY}px)`;
+                    
+                    const upIndicator = element.querySelector('.swipe-indicator.up');
+                    const downIndicator = element.querySelector('.swipe-indicator.down');
+                    
+                    if (diffY < -30) {
+                        // Swipe up
+                        element.classList.add('swipe-up');
+                        element.classList.remove('swipe-down');
+                        upIndicator.classList.add('visible');
+                        downIndicator.classList.remove('visible');
+                    } else if (diffY > 30) {
+                        // Swipe down
+                        element.classList.add('swipe-down');
+                        element.classList.remove('swipe-up');
+                        downIndicator.classList.add('visible');
+                        upIndicator.classList.remove('visible');
+                    }
+                }
+            });
+            
+            element.addEventListener('touchend', (e) => {
+                if (!isSwiping) {
+                    resetSwipe();
+                    return;
+                }
+                
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+                
+                // Swipe left (mark as complete)
+                if (diffX < -100 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (task.status === 'pending') {
+                        completeTask(task.id);
+                    }
+                }
+                // Swipe right (uncomplete)
+                else if (diffX > 100 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (task.status === 'completed') {
+                        uncompleteTask(task.id);
+                    }
+                }
+                // Swipe up (priority up - not implemented for tasks)
+                else if (diffY < -100 && Math.abs(diffY) > Math.abs(diffX)) {
+                    // Could implement priority increase here
+                }
+                // Swipe down (priority down - not implemented for tasks)
+                else if (diffY > 100 && Math.abs(diffY) > Math.abs(diffX)) {
+                    // Could implement priority decrease here
+                }
+                
+                resetSwipe();
+                
+                function resetSwipe() {
+                    element.classList.remove('swiping', 'swipe-left', 'swipe-right', 'swipe-up', 'swipe-down');
+                    element.style.transform = '';
+                    element.querySelectorAll('.swipe-indicator').forEach(ind => ind.classList.remove('visible'));
+                    startX = 0;
+                    startY = 0;
+                    currentX = 0;
+                    currentY = 0;
+                    isSwiping = false;
+                }
+            });
         }
         
         function completeTask(taskId) {
@@ -2338,12 +2449,32 @@
                     completedBy: currentUser.name,
                     completedById: currentUser.id
                 }).then(() => {
-                    console.log('✅ משימה הושלמה');
+                    showToast('✅ המשימה הושלמה');
                 }).finally(() => {
                     isSyncing = false;
                     updateSyncStatus();
                 });
             }
+        }
+        
+        function uncompleteTask(taskId) {
+            const task = tasks[taskId];
+            if (!task) return;
+            
+            isSyncing = true;
+            updateSyncStatus();
+            
+            tasksRef.child(taskId).update({
+                status: 'pending',
+                completedAt: null,
+                completedBy: null,
+                completedById: null
+            }).then(() => {
+                showToast('↩️ המשימה חזרה למצב ממתין');
+            }).finally(() => {
+                isSyncing = false;
+                updateSyncStatus();
+            });
         }
         
         function showToast(message) {
