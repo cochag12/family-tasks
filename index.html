@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v8.9 (10/02/2026) - 🔢 Count Fix: ספירת המשימות בכרטיסיות תוקנה! לא סופרות משימות שהושלמו!
     v8.8 (10/02/2026) - 🔧 My Tasks Fix: משימות שהושלמו (כולל recurring!) לא מופיעות יותר ב"משימות שלי"!
     v8.7 (10/02/2026) - 🔧 Bottom Fix: תיקון "החלקה למטה" - עכשיו ירידה לסוף הרשימה עובדת מושלם!
     v8.6 (10/02/2026) - 🗑️ Delete Shopping: הוספת כפתור מחיקה לקניות! כמו במשימות - רק ל-Admin!
@@ -43,13 +44,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v8.8 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v8.9 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="8.8">
+    <meta name="version" content="8.9">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="My Tasks Fix: משימות שהושלמו לא מופיעות יותר במשימות שלי! 🔧">
+    <meta name="changelog" content="Count Fix: ספירת המשימות בכרטיסיות תוקנה! 🔢">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1619,7 +1620,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v8.8</div>
+        <div class="version-badge-login">v8.9</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1679,7 +1680,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v8.8</span>
+                        <span class="version-badge-header">v8.9</span>
                     </div>
                 </div>
                 
@@ -2809,9 +2810,25 @@
                 }
                 return t.assignedTo === currentUser.id; // Regular users see only their tasks
             });
-            const pending = allTasks.filter(t => t.status === 'pending').length;
-            const personal = allTasks.filter(t => t.isPersonal).length;
-            const myTasks = allTasks.filter(t => t.assignedTo === currentUser.id).length;
+            
+            // Helper function to check if task should be counted
+            const today = new Date().setHours(0, 0, 0, 0);
+            const shouldCountTask = (t) => {
+                // Don't count completed tasks
+                if (t.status === 'completed') return false;
+                
+                // Don't count recurring tasks completed today
+                if (t.isRecurring && t.lastCompletedAt) {
+                    const completedDate = new Date(t.lastCompletedAt).setHours(0, 0, 0, 0);
+                    if (completedDate === today) return false;
+                }
+                
+                return true;
+            };
+            
+            const pending = allTasks.filter(t => shouldCountTask(t) && t.status === 'pending').length;
+            const personal = allTasks.filter(t => shouldCountTask(t) && t.isPersonal).length;
+            const myTasks = allTasks.filter(t => shouldCountTask(t) && t.assignedTo === currentUser.id).length;
             
             document.getElementById('pendingTasksCount').textContent = pending;
             document.getElementById('personalTasksCount').textContent = personal;
