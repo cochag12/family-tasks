@@ -1,16 +1,16 @@
-// LOBALI Service Worker v9.1
+// LOBALI Service Worker v9.2
 // Elite Procrastination Management - PWA Support
 
-const CACHE_NAME = 'lobali-v9.1';
-const RUNTIME_CACHE = 'lobali-runtime-v9.1';
+const CACHE_NAME = 'lobali-v9.2';
+const RUNTIME_CACHE = 'lobali-runtime-v9.2';
 
 // קבצים שנשמור בקאש
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // התקנת Service Worker
@@ -85,7 +85,7 @@ self.addEventListener('fetch', (event) => {
           })
           .catch(() => {
             // אין רשת - נסה להחזיר את index.html מהקאש
-            return caches.match('/index.html');
+            return caches.match('./index.html');
           });
       })
   );
@@ -97,8 +97,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: event.data ? event.data.text() : 'משימה חדשה מחכה לך!',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
     vibrate: [200, 100, 200],
     tag: 'lobali-notification',
     renotify: true
@@ -116,8 +116,8 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
   event.waitUntil(
-    clients.openWindow('/')
+    clients.openWindow('./')
   );
 });
 
-console.log('💜 LOBALI Service Worker v9.1 מוכן!');
+console.log('💜 LOBALI Service Worker v9.2 מוכן!');
