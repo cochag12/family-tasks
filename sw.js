@@ -1,8 +1,8 @@
-// LOBALI Service Worker v9.2
+// LOBALI Service Worker v9.3
 // Elite Procrastination Management - PWA Support
 
-const CACHE_NAME = 'lobali-v9.2';
-const RUNTIME_CACHE = 'lobali-runtime-v9.2';
+const CACHE_NAME = 'lobali-v9.3';
+const RUNTIME_CACHE = 'lobali-runtime-v9.3';
 
 // קבצים שנשמור בקאש
 const STATIC_ASSETS = [
@@ -51,6 +51,11 @@ self.addEventListener('activate', (event) => {
 
 // טיפול בבקשות רשת
 self.addEventListener('fetch', (event) => {
+  // התעלם מבקשות שאינן HTTP/HTTPS (chrome-extension, etc.)
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+  
   // התעלם מבקשות Firebase
   if (event.request.url.includes('firebaseio.com') || 
       event.request.url.includes('googleapis.com') ||
@@ -120,4 +125,4 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-console.log('💜 LOBALI Service Worker v9.2 מוכן!');
+console.log('💜 LOBALI Service Worker v9.3 מוכן!');
