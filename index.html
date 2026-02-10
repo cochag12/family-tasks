@@ -3,6 +3,8 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v8.8 (10/02/2026) - 🔧 My Tasks Fix: משימות שהושלמו (כולל recurring!) לא מופיעות יותר ב"משימות שלי"!
+    v8.7 (10/02/2026) - 🔧 Bottom Fix: תיקון "החלקה למטה" - עכשיו ירידה לסוף הרשימה עובדת מושלם!
     v8.6 (10/02/2026) - 🗑️ Delete Shopping: הוספת כפתור מחיקה לקניות! כמו במשימות - רק ל-Admin!
     v8.5 (10/02/2026) - ⏱️ Extra Safe: long-press הוארך ל-2 שניות מלאות!
     v8.4 (10/02/2026) - ⏱️ Timing Perfect: long-press 0.5 שניות + גרירה ↑ לראש / ↓ לסוף!
@@ -41,13 +43,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v8.6 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v8.8 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="8.6">
+    <meta name="version" content="8.8">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Delete Shopping: הוספת כפתור מחיקה לקניות! 🗑️">
+    <meta name="changelog" content="My Tasks Fix: משימות שהושלמו לא מופיעות יותר במשימות שלי! 🔧">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1617,7 +1619,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v8.6</div>
+        <div class="version-badge-login">v8.8</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1677,7 +1679,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v8.6</span>
+                        <span class="version-badge-header">v8.8</span>
                     </div>
                 </div>
                 
@@ -2755,8 +2757,26 @@
                     return t.isPersonal === true;
                 });
             } else if (currentFilter === 'my-tasks') {
-                // Show only tasks assigned to me (including personal tasks)
-                filteredTasks = filteredTasks.filter(t => t.assignedTo === currentUser.id && t.status === 'pending');
+                // Show only tasks assigned to me that are pending
+                // Exclude recurring tasks that were completed today
+                const today = new Date().setHours(0, 0, 0, 0);
+                filteredTasks = filteredTasks.filter(t => {
+                    // Must be assigned to me
+                    if (t.assignedTo !== currentUser.id) return false;
+                    
+                    // If completed, don't show
+                    if (t.status === 'completed') return false;
+                    
+                    // If recurring and completed today, don't show
+                    if (t.isRecurring && t.lastCompletedAt) {
+                        const completedDate = new Date(t.lastCompletedAt).setHours(0, 0, 0, 0);
+                        if (completedDate === today) {
+                            return false; // Hide tasks completed today
+                        }
+                    }
+                    
+                    return true;
+                });
             }
             
             // Sort: pinned first, then by status, then by date
@@ -3043,8 +3063,8 @@
             isSyncing = true;
             updateSyncStatus();
             
-            // Set createdAt to past (moves to bottom)
-            const newCreatedAt = Date.now() - 1000000000;
+            // Set createdAt to very old (moves to bottom) - use 1 to ensure it's the oldest
+            const newCreatedAt = 1;
             
             tasksRef.child(taskId).update({
                 createdAt: newCreatedAt
@@ -3746,15 +3766,15 @@
             const item = shopping[itemId];
             if (!item) return;
             
-            // Decrease priority by setting addedAt to past
+            // Set addedAt to 1 (oldest possible) - moves to bottom
             isSyncing = true;
             updateSyncStatus();
             
             shoppingRef.child(itemId).update({
-                addedAt: Date.now() - (7 * 24 * 60 * 60 * 1000) // שבוע אחורה
+                addedAt: 1
             })
                 .then(() => {
-                    showToast('⬇️ הפריט הורד למטה ברשימה');
+                    showToast('⬇️ הפריט הורד לסוף הרשימה');
                 })
                 .catch(error => {
                     console.error('Error moving item:', error);
