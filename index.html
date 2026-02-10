@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.0 (10/02/2026) - 🔒 Personal Fix: "משימות עצמאיות" מציג רק משימות שלי! לא של אחרים!
     v8.9 (10/02/2026) - 🔢 Count Fix: ספירת המשימות בכרטיסיות תוקנה! לא סופרות משימות שהושלמו!
     v8.8 (10/02/2026) - 🔧 My Tasks Fix: משימות שהושלמו (כולל recurring!) לא מופיעות יותר ב"משימות שלי"!
     v8.7 (10/02/2026) - 🔧 Bottom Fix: תיקון "החלקה למטה" - עכשיו ירידה לסוף הרשימה עובדת מושלם!
@@ -44,13 +45,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v8.9 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.0 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="8.9">
+    <meta name="version" content="9.0">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Count Fix: ספירת המשימות בכרטיסיות תוקנה! 🔢">
+    <meta name="changelog" content="Personal Fix: משימות עצמאיות מציג רק משימות שלי! 🔒">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1620,7 +1621,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v8.9</div>
+        <div class="version-badge-login">v9.0</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1680,7 +1681,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v8.9</span>
+                        <span class="version-badge-header">v9.0</span>
                     </div>
                 </div>
                 
@@ -2752,10 +2753,10 @@
             } else if (currentFilter === 'completed') {
                 filteredTasks = filteredTasks.filter(t => t.status === 'completed');
             } else if (currentFilter === 'personal') {
-                // Show personal tasks (tasks created by user for themselves)
+                // Show only MY personal tasks (tasks I created for myself)
                 filteredTasks = filteredTasks.filter(t => {
-                    // Personal task = isPersonal flag is true
-                    return t.isPersonal === true;
+                    // Personal task must be mine (assigned to me)
+                    return t.isPersonal === true && t.assignedTo === currentUser.id;
                 });
             } else if (currentFilter === 'my-tasks') {
                 // Show only tasks assigned to me that are pending
@@ -2827,7 +2828,7 @@
             };
             
             const pending = allTasks.filter(t => shouldCountTask(t) && t.status === 'pending').length;
-            const personal = allTasks.filter(t => shouldCountTask(t) && t.isPersonal).length;
+            const personal = allTasks.filter(t => shouldCountTask(t) && t.isPersonal && t.assignedTo === currentUser.id).length;
             const myTasks = allTasks.filter(t => shouldCountTask(t) && t.assignedTo === currentUser.id).length;
             
             document.getElementById('pendingTasksCount').textContent = pending;
