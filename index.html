@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.2 (10/02/2026) - 📱 PWA Support: הפיכה לאפליקציה מתקנת! manifest, service worker, אייקונים!
     v9.1 (10/02/2026) - 👶 Ann Promotion: אן עודכנה ל"סמנכ"לית תפעול"! קידום ראוי!
     v9.0 (10/02/2026) - 🔒 Personal Fix: "משימות עצמאיות" מציג רק משימות שלי! לא של אחרים!
     v8.9 (10/02/2026) - 🔢 Count Fix: ספירת המשימות בכרטיסיות תוקנה! לא סופרות משימות שהושלמו!
@@ -46,13 +47,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.1 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.2 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.1">
+    <meta name="version" content="9.2">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Ann Promotion: אן עודכנה לסמנכ״לית תפעול! 👶">
+    <meta name="changelog" content="PWA Support: הפיכה לאפליקציה מתקנת! 📱">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="LOBALI">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1622,7 +1633,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.1</div>
+        <div class="version-badge-login">v9.2</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1682,7 +1693,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.1</span>
+                        <span class="version-badge-header">v9.2</span>
                     </div>
                 </div>
                 
@@ -1971,6 +1982,51 @@
         const tasksRef = db.ref('tasks');
         const shoppingRef = db.ref('shopping');
         const deletionHistoryRef = db.ref('deletionHistory');
+        
+        // ==================== PWA - SERVICE WORKER ====================
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('💜 LOBALI Service Worker נרשם בהצלחה!', registration.scope);
+                        
+                        // בדיקת עדכונים
+                        registration.addEventListener('updatefound', () => {
+                            console.log('🔄 נמצא עדכון ל-Service Worker...');
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('❌ רישום Service Worker נכשל:', error);
+                    });
+            });
+            
+            // מעקב אחר שינויי מצב של Service Worker
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                console.log('♻️ Service Worker עודכן - אפשר לטעון מחדש');
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('📱 LOBALI מוכנה להתקנה!');
+            
+            // אפשר להוסיף כפתור "התקן אפליקציה" בעתיד
+            // const installButton = document.getElementById('installButton');
+            // if (installButton) {
+            //     installButton.style.display = 'block';
+            // }
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('💜 LOBALI הותקנה בהצלחה על המכשיר!');
+            deferredPrompt = null;
+        });
         
         // ==================== GLOBAL VARIABLES ====================
         
@@ -4300,7 +4356,7 @@
                     tasks: tasks,
                     shopping: shopping,
                     deletionHistory: deletionHistory,
-                    version: '8.1'
+                    version: '9.2'
                 };
                 
                 // Daily backup - one file per day (overwrites previous)
@@ -4411,7 +4467,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '8.1'
+                    version: '9.2'
                 };
                 
                 // Convert to JSON
