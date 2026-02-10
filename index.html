@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.3 (10/02/2026) - 🔧 PWA Fix: תיקון Service Worker - סינון chrome-extension, mobile-web-app-capable!
     v9.2 (10/02/2026) - 📱 PWA Support: הפיכה לאפליקציה מתקנת! manifest, service worker, אייקונים!
     v9.1 (10/02/2026) - 👶 Ann Promotion: אן עודכנה ל"סמנכ"לית תפעול"! קידום ראוי!
     v9.0 (10/02/2026) - 🔒 Personal Fix: "משימות עצמאיות" מציג רק משימות שלי! לא של אחרים!
@@ -47,17 +48,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.2 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.3 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.2">
+    <meta name="version" content="9.3">
     <meta name="last-updated" content="2026-02-10">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="PWA Support: הפיכה לאפליקציה מתקנת! 📱">
+    <meta name="changelog" content="PWA Fix: תיקון Service Worker לתמיכה מלאה! 🔧">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2196F3">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="LOBALI">
@@ -1633,7 +1635,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.2</div>
+        <div class="version-badge-login">v9.3</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1693,7 +1695,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.2</span>
+                        <span class="version-badge-header">v9.3</span>
                     </div>
                 </div>
                 
@@ -4467,7 +4469,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.2'
+                    version: '9.3'
                 };
                 
                 // Convert to JSON
