@@ -1982,12 +1982,15 @@
         }
         
         // Anonymous Authentication - אבטחת מסד הנתונים
+        let firebaseAuthReady = false;
         firebase.auth().signInAnonymously()
             .then(() => {
                 console.log('🔒 LOBALI: התחברות אנונימית הצליחה');
+                firebaseAuthReady = true;
             })
             .catch((error) => {
                 console.error('❌ שגיאת אימות:', error);
+                firebaseAuthReady = true;
             });
         
         const db = firebase.database();
@@ -2124,8 +2127,19 @@
         
         // ==================== INITIALIZATION ====================
         
+        let appInitialized = false;
+        
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            // מחכים שה-Auth יסתיים לפני אתחול האפליקציה
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user && !appInitialized) {
+                    console.log('🔒 Auth ready, UID:', user.uid);
+                    appInitialized = true;
+                    initializeApp();
+                } else if (!user) {
+                    console.log('⏳ ממתין לאימות...');
+                }
+            });
         });
         
         function initializeApp() {
