@@ -4867,6 +4867,7 @@
         let voiceInterimText = '';
         let voiceTimeout = null;
         let waitingForConfirmation = false;
+        let voiceActionTaken = false;
         
         // Hide mic button if speech not supported
         if (!SpeechRecognition) {
@@ -4908,10 +4909,12 @@
                     if (answer.includes('כן') || answer.includes('אשר') || answer.includes('נכון') || answer.includes('אישור')) {
                         clearTimeout(voiceTimeout);
                         waitingForConfirmation = false;
+                        voiceActionTaken = true;
                         confirmVoiceInput();
                     } else if (answer.includes('לא') || answer.includes('שוב') || answer.includes('בטל') || answer.includes('חזור')) {
                         clearTimeout(voiceTimeout);
                         waitingForConfirmation = false;
+                        voiceActionTaken = true;
                         retryVoiceInput();
                     }
                     return;
@@ -4951,6 +4954,12 @@
             
             voiceRecognition.onend = () => {
                 clearTimeout(voiceTimeout);
+                
+                // If action was already taken (confirm/retry/cancel), skip
+                if (voiceActionTaken) {
+                    voiceActionTaken = false;
+                    return;
+                }
                 
                 if (waitingForConfirmation) {
                     // Confirmation listening ended without clear answer - show buttons
@@ -5019,6 +5028,8 @@
             voiceInputMode = mode;
             voiceFinalText = '';
             voiceInterimText = '';
+            voiceActionTaken = false;
+            waitingForConfirmation = false;
             
             // Open modal
             document.getElementById('voiceModal').classList.add('active');
