@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ הקלטה למלל</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, transparent 100%);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818CF8, #C084FC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 0.85rem;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        
+        .main {
+            flex: 1;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        /* Status */
+        .status {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #9CA3AF;
+            min-height: 28px;
+            transition: all 0.3s;
+        }
+        
+        .status.recording {
+            color: #F87171;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Record Button */
+        .record-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .record-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid rgba(129, 140, 248, 0.3);
+            background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(99,102,241,0.05) 100%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .record-btn::before {
+            content: '';
+            width: 50px;
+            height: 50px;
+            background: #818CF8;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .record-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .record-btn.recording {
+            border-color: rgba(248, 113, 113, 0.6);
+            animation: pulse-ring 1.5s infinite;
+        }
+        
+        .record-btn.recording::before {
+            background: #F87171;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+        
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(248,113,113,0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(248,113,113,0); }
+            100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
+        }
+        
+        .record-hint {
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+        
+        /* Waveform */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 40px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .waveform.active {
+            opacity: 1;
+        }
+        
+        .wave-bar {
+            width: 4px;
+            height: 8px;
+            background: #818CF8;
+            border-radius: 2px;
+            transition: height 0.1s;
+        }
+        
+        .waveform.active .wave-bar {
+            animation: wave 0.8s ease-in-out infinite;
+        }
+        
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(9) { animation-delay: 0s; }
+        
+        @keyframes wave {
+            0%, 100% { height: 8px; background: #818CF8; }
+            50% { height: 32px; background: #C084FC; }
+        }
+        
+        /* Result Area */
+        .result-area {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeUp 0.4s ease;
+        }
+        
+        .result-area.visible {
+            display: flex;
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #818CF8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .result-text {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #F3F4F6;
+            min-height: 80px;
+            word-wrap: break-word;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:active { transform: scale(0.97); }
+        
+        .btn-copy {
+            background: rgba(129, 140, 248, 0.15);
+            color: #818CF8;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+        }
+        
+        .btn-clear {
+            background: rgba(248, 113, 113, 0.1);
+            color: #F87171;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+        
+        /* History */
+        .history {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .history-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4B5563;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 0.9rem;
+            color: #9CA3AF;
+            line-height: 1.6;
+            position: relative;
+        }
+        
+        .history-time {
+            font-size: 0.7rem;
+            color: #4B5563;
+            margin-top: 6px;
+        }
+        
+        /* Not supported */
+        .not-supported {
+            text-align: center;
+            padding: 40px 20px;
+            color: #F87171;
+        }
+        
+        .not-supported h2 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+        
+        .not-supported p {
+            color: #9CA3AF;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎙️ הקלטה למלל</h1>
+        <p>לחץ על הכפתור ודבר בעברית</p>
+    </div>
+    
+    <div class="main" id="app">
+        <div class="status" id="status">מוכן להקלטה</div>
+        
+        <div class="record-area">
+            <div class="waveform" id="waveform">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+            
+            <div class="record-btn" id="recordBtn" onclick="toggleRecording()"></div>
+            <div class="record-hint">לחץ להקלטה • לחץ שוב לעצירה</div>
+        </div>
+        
+        <div class="result-area" id="resultArea">
+            <div class="result-label">תוצאה</div>
+            <div class="result-text" id="resultText"></div>
+            <div class="result-actions">
+                <button class="btn btn-copy" onclick="copyText()">📋 העתק</button>
+                <button class="btn btn-clear" onclick="clearResult()">🗑️ נקה</button>
+            </div>
+        </div>
+        
+        <div class="history" id="historyArea"></div>
+    </div>
+    
+    <div class="not-supported" id="notSupported" style="display:none;">
+        <h2>😔 הדפדפן לא תומך</h2>
+        <p>זיהוי קולי נתמך בדפדפן Chrome במחשב או באנדרואיד.<br>נסה לפתוח את הדף ב-Chrome.</p>
+    </div>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('notSupported').style.display = 'block';
+        }
+        
+        let recognition = null;
+        let isRecording = false;
+        let history = [];
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'he-IL';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('waveform').classList.add('active');
+                document.getElementById('status').textContent = '🔴 מקליט... דבר עכשיו';
+                document.getElementById('status').classList.add('recording');
+                finalTranscript = '';
+                interimTranscript = '';
+            };
+            
+            recognition.onresult = (event) => {
+                interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                const display = finalTranscript + interimTranscript;
+                document.getElementById('resultText').textContent = display.trim();
+                document.getElementById('resultArea').classList.add('visible');
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                if (event.error === 'no-speech') {
+                    document.getElementById('status').textContent = '🤫 לא שמעתי כלום, נסה שוב';
+                } else if (event.error === 'not-allowed') {
+                    document.getElementById('status').textContent = '⚠️ אנא אשר גישה למיקרופון';
+                } else {
+                    document.getElementById('status').textContent = '❌ שגיאה: ' + event.error;
+                }
+                stopRecording();
+            };
+            
+            recognition.onend = () => {
+                if (isRecording) {
+                    // Save to history if we have text
+                    const text = (finalTranscript + interimTranscript).trim();
+                    if (text) {
+                        addToHistory(text);
+                    }
+                }
+                stopRecording();
+            };
+        }
+        
+        function toggleRecording() {
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                try {
+                    document.getElementById('resultText').textContent = '';
+                    recognition.start();
+                } catch (e) {
+                    console.error('Start error:', e);
+                }
+            }
+        }
+        
+        function stopRecording() {
+            isRecording = false;
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('waveform').classList.remove('active');
+            document.getElementById('status').textContent = 'מוכן להקלטה';
+            document.getElementById('status').classList.remove('recording');
+        }
+        
+        function copyText() {
+            const text = document.getElementById('resultText').textContent;
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.querySelector('.btn-copy');
+                    btn.textContent = '✅ הועתק!';
+                    setTimeout(() => { btn.textContent = '📋 העתק'; }, 1500);
+                });
+            }
+        }
+        
+        function clearResult() {
+            document.getElementById('resultText').textContent = '';
+            document.getElementById('resultArea').classList.remove('visible');
+            document.getElementById('status').textContent = 'מוכן להקלטה';
+        }
+        
+        function addToHistory(text) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+            
+            history.unshift({ text, time });
+            if (history.length > 10) history.pop();
+            
+            renderHistory();
+        }
+        
+        function renderHistory() {
+            const area = document.getElementById('historyArea');
+            if (history.length === 0) {
+                area.innerHTML = '';
+                return;
+            }
+            
+            area.innerHTML = '<div class="history-label">היסטוריה</div>';
+            history.forEach(item => {
+                area.innerHTML += `
+                    <div class="history-item" onclick="navigator.clipboard.writeText('${item.text.replace(/'/g, "\\'")}')">
+                        ${item.text}
+                        <div class="history-time">${item.time} • לחץ להעתקה</div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
