@@ -3,7 +3,9 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v10.0 (13/02/2026) - 🎙️ Voice Rewrite: שכתוב מלא! הקלטה → הקראה → אשר/הקלט שוב → נוסף! להוסיף עוד?
+    v10.2 (13/02/2026) - ⚡ Quick Voice: הקלטה → 5 שניות → מוסיף אוטומטית! בלי אישור, בלי השמעה!
+    v10.1 (13/02/2026) - 🔧 Cache Fix: ניקוי Service Worker אוטומטי + תיקון נראות קניות + הקלטה פשוטה!
+    v10.0 (13/02/2026) - 🎙️ Voice Rewrite: שכתוב מלא! הקלטה → הקראה → אשר/הקלט שוב → נוסף!
     v9.9 (13/02/2026) - 🔄 Voice Loop: אחרי הוספה שואל "להוסיף עוד?" + לולאת הקלטה רציפה!
     v9.8 (13/02/2026) - 🎤 Voice Confirm: אישור קולי (כן/אשר/לא/בטל) + הגבלת 5 שניות + תיקון הקראה כפולה!
     v9.7 (13/02/2026) - 👥 General Tasks: משימות כלליות לכולם! כפתור "כולם" + פילטר + הקלטה קולית חכמה!
@@ -55,13 +57,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v10.0 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v10.2 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="10.0">
+    <meta name="version" content="10.2">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Voice Rewrite: שכתוב מלא של מנגנון הקול! 🎙️">
+    <meta name="changelog" content="Quick Voice: הקלטה אוטומטית ב-5 שניות! ⚡">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1785,7 +1787,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v10.0</div>
+        <div class="version-badge-login">v10.2</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1845,7 +1847,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v10.0</span>
+                        <span class="version-badge-header">v10.2</span>
                     </div>
                 </div>
                 
@@ -1973,14 +1975,11 @@
         <!-- Voice Input Modal -->
         <div class="voice-modal-overlay" id="voiceModal">
             <div class="voice-modal">
-                <div class="voice-modal-icon" id="voiceModalIcon">🎙️</div>
-                <div class="voice-modal-status" id="voiceModalStatus">מקשיב...</div>
+                <div class="voice-modal-icon" id="voiceModalIcon">🔴</div>
+                <div class="voice-modal-status" id="voiceModalStatus">🎤 מקשיב...</div>
                 <div class="voice-modal-text" id="voiceModalText"></div>
-                <!-- Confirm buttons: אשר / הקלט שוב / בטל -->
-                <div class="voice-modal-actions" id="voiceConfirmBtns" style="display:none;">
-                    <button class="btn btn-voice-confirm" onclick="voiceConfirm()">✅ אשר</button>
-                    <button class="btn btn-voice-retry" onclick="voiceRetry()">🔄 הקלט שוב</button>
-                    <button class="btn btn-voice-cancel" onclick="voiceClose()">❌ בטל</button>
+                <div class="voice-modal-actions">
+                    <button class="btn btn-voice-cancel" onclick="voiceClose()" style="width:100%">❌ בטל</button>
                 </div>
             </div>
         </div>
@@ -2156,6 +2155,12 @@
         // Anonymous Authentication - אבטחת מסד הנתונים
         firebase.auth().signInAnonymously().catch((error) => {
             console.error('❌ שגיאת אימות:', error);
+            // Retry once
+            setTimeout(() => {
+                firebase.auth().signInAnonymously().catch(e => {
+                    console.error('❌ אימות נכשל שנית:', e);
+                });
+            }, 2000);
         });
         
         const db = firebase.database();
@@ -2167,27 +2172,27 @@
         
         // ==================== PWA - SERVICE WORKER ====================
         
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then((registration) => {
-                        console.log('💜 LOBALI Service Worker נרשם בהצלחה!', registration.scope);
-                        
-                        // בדיקת עדכונים
-                        registration.addEventListener('updatefound', () => {
-                            console.log('🔄 נמצא עדכון ל-Service Worker...');
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('❌ רישום Service Worker נכשל:', error);
-                    });
-            });
-            
-            // מעקב אחר שינויי מצב של Service Worker
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                console.log('♻️ Service Worker עודכן - אפשר לטעון מחדש');
-            });
+        // Force update: unregister old SW if version changed
+        const APP_VERSION = '10.2';
+        const storedVersion = localStorage.getItem('lobali_version');
+        
+        if (storedVersion !== APP_VERSION) {
+            localStorage.setItem('lobali_version', APP_VERSION);
+            // Unregister all service workers to clear cache
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(reg => reg.unregister());
+                    if (storedVersion) {
+                        // Had old version - reload to get fresh content
+                        console.log('🔄 מעדכן מ-' + storedVersion + ' ל-' + APP_VERSION);
+                        location.reload(true);
+                    }
+                });
+            }
+            // Clear caches
+            if ('caches' in window) {
+                caches.keys().then(names => names.forEach(name => caches.delete(name)));
+            }
         }
         
         // PWA Install Prompt
@@ -2630,6 +2635,9 @@
                 loadTasks();
                 loadStats();
                 updateTabCounts();
+            }, (error) => {
+                console.error('❌ שגיאת קריאת משימות:', error);
+                showToast('⚠️ בעיית חיבור - נסה לצאת ולהיכנס מחדש');
             });
             
             // Shopping listener
@@ -2638,6 +2646,9 @@
                 loadShopping();
                 loadStats();
                 updateTabCounts();
+            }, (error) => {
+                console.error('❌ שגיאת קריאת קניות:', error);
+                showToast('⚠️ בעיית חיבור - נסה לצאת ולהיכנס מחדש');
             });
             
             // Deletion history listener
@@ -4722,7 +4733,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '10.0'
+                    version: '10.2'
                 };
                 
                 // Convert to JSON
@@ -4862,16 +4873,13 @@
                 return null;
             }
         }
-        // ==================== VOICE INPUT ====================
-        
-        // ==================== VOICE INPUT (SIMPLE) ====================
+        // ==================== VOICE INPUT (AUTO-ADD) ====================
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let voiceRec = null;
-        let voiceMode = null; // 'task' or 'shopping'
+        let voiceMode = null;
         let voiceTimer = null;
         
-        // Hide mic if not supported
         if (!SpeechRecognition) {
             const btn = document.getElementById('fabMicBtn');
             if (btn) btn.style.display = 'none';
@@ -4884,45 +4892,6 @@
             voiceRec.interimResults = true;
         }
         
-        // --- UI Helpers ---
-        function voiceShowModal() {
-            document.getElementById('voiceModal').classList.add('active');
-            document.getElementById('voiceConfirmBtns').style.display = 'none';
-            document.getElementById('voiceModalText').textContent = '';
-        }
-        
-        function voiceShowRecording() {
-            document.getElementById('voiceModalIcon').textContent = '🔴';
-            document.getElementById('voiceModalStatus').textContent = '🎤 מקשיב... דבר עכשיו';
-            document.getElementById('voiceModalStatus').classList.add('recording');
-            document.getElementById('voiceConfirmBtns').style.display = 'none';
-        }
-        
-        function voiceShowConfirmBtns(statusText) {
-            document.getElementById('voiceModalIcon').textContent = '🎙️';
-            document.getElementById('voiceModalStatus').textContent = statusText;
-            document.getElementById('voiceModalStatus').classList.remove('recording');
-            document.getElementById('voiceConfirmBtns').style.display = 'flex';
-        }
-        
-        // --- TTS ---
-        function voiceSpeak(text, callback) {
-            if (!('speechSynthesis' in window)) { if (callback) callback(); return; }
-            speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'he-IL';
-            u.rate = 0.9;
-            const voices = speechSynthesis.getVoices();
-            const hv = voices.find(v => v.lang.startsWith('he'));
-            if (hv) u.voice = hv;
-            u.onend = () => { if (callback) callback(); };
-            u.onerror = () => { if (callback) callback(); };
-            speechSynthesis.speak(u);
-        }
-        
-        // --- Main Flow ---
-        
-        // Step 1: User presses mic
         function startVoiceInputSmart() {
             const shoppingTab = document.getElementById('shoppingTab');
             if (!shoppingTab.classList.contains('hidden')) {
@@ -4939,8 +4908,12 @@
             speechSynthesis.cancel();
             clearTimeout(voiceTimer);
             
-            voiceShowModal();
-            voiceShowRecording();
+            // Show modal
+            document.getElementById('voiceModal').classList.add('active');
+            document.getElementById('voiceModalText').textContent = '';
+            document.getElementById('voiceModalIcon').textContent = '🔴';
+            document.getElementById('voiceModalStatus').textContent = '🎤 מקשיב... דבר עכשיו';
+            document.getElementById('voiceModalStatus').classList.add('recording');
             document.getElementById('fabMicBtn').classList.add('recording');
             
             let finalText = '';
@@ -4961,35 +4934,36 @@
             voiceRec.onerror = (event) => {
                 clearTimeout(voiceTimer);
                 document.getElementById('fabMicBtn').classList.remove('recording');
+                document.getElementById('voiceModalStatus').classList.remove('recording');
                 if (event.error === 'no-speech') {
-                    voiceShowConfirmBtns('🤫 לא שמעתי, נסה שוב');
-                } else if (event.error === 'not-allowed') {
-                    voiceShowConfirmBtns('⚠️ אנא אשר גישה למיקרופון');
+                    document.getElementById('voiceModalIcon').textContent = '🤫';
+                    document.getElementById('voiceModalStatus').textContent = 'לא שמעתי, נסה שוב';
+                    setTimeout(() => voiceClose(), 1500);
                 }
             };
             
             voiceRec.onend = () => {
                 clearTimeout(voiceTimer);
                 document.getElementById('fabMicBtn').classList.remove('recording');
+                document.getElementById('voiceModalStatus').classList.remove('recording');
                 
                 const text = (finalText + interimText).trim();
-                document.getElementById('voiceModalText').textContent = text;
                 
                 if (text) {
-                    // Step 2: Read back, then show confirm buttons
-                    document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
-                    document.getElementById('voiceModalIcon').textContent = '🔊';
-                    voiceSpeak(text, () => {
-                        voiceShowConfirmBtns('האם לאשר?');
-                    });
+                    // Auto-add immediately
+                    voiceAddItem(text);
+                    document.getElementById('voiceModalIcon').textContent = '✅';
+                    document.getElementById('voiceModalStatus').textContent = 'נוסף!';
+                    setTimeout(() => voiceClose(), 1000);
                 } else {
-                    voiceShowConfirmBtns('לא זוהה טקסט, נסה שוב');
+                    document.getElementById('voiceModalIcon').textContent = '🤫';
+                    document.getElementById('voiceModalStatus').textContent = 'לא זוהה טקסט';
+                    setTimeout(() => voiceClose(), 1500);
                 }
             };
             
             try {
                 voiceRec.start();
-                // Auto-stop after 5 seconds
                 voiceTimer = setTimeout(() => {
                     try { voiceRec.stop(); } catch(e) {}
                 }, 5000);
@@ -4998,15 +4972,7 @@
             }
         }
         
-        // Step 3: User presses אשר
-        function voiceConfirm() {
-            speechSynthesis.cancel();
-            clearTimeout(voiceTimer);
-            try { voiceRec.stop(); } catch(e) {}
-            
-            const text = document.getElementById('voiceModalText').textContent.trim();
-            if (!text) { voiceClose(); return; }
-            
+        function voiceAddItem(text) {
             if (voiceMode === 'task') {
                 let taskText = text;
                 let assignee = null;
@@ -5028,7 +4994,7 @@
                         isPinned: false, isPersonal: assignee.id === currentUser.id,
                         isGeneral: false, isRecurring: false, dueDate: null
                     };
-                    tasksRef.child(t.id).set(t).then(() => showToast('✅ משימה נוספה ל-' + assignee.name));
+                    tasksRef.child(t.id).set(t).then(() => showToast('✅ ' + (taskText || text) + ' → ' + assignee.name));
                 } else {
                     const t = {
                         id: 'task_' + Date.now(), title: taskText, description: '',
@@ -5039,7 +5005,7 @@
                         isPinned: false, isPersonal: false,
                         isGeneral: true, isRecurring: false, dueDate: null
                     };
-                    tasksRef.child(t.id).set(t).then(() => showToast('✅ משימה כללית נוספה'));
+                    tasksRef.child(t.id).set(t).then(() => showToast('✅ ' + taskText));
                 }
             } else if (voiceMode === 'shopping') {
                 const itemId = 'item_' + Date.now();
@@ -5050,24 +5016,10 @@
                     addedAt: Date.now(), status: 'pending',
                     purchasedAt: null, purchasedBy: null, purchasedById: null, isPinned: false
                 };
-                shoppingRef.child(itemId).set(item).then(() => showToast('🛒 נוסף: ' + text));
+                shoppingRef.child(itemId).set(item).then(() => showToast('🛒 ' + text));
             }
-            
-            // Done - close modal
-            voiceClose();
         }
         
-        // User presses הקלט שוב
-        function voiceRetry() {
-            speechSynthesis.cancel();
-            clearTimeout(voiceTimer);
-            try { voiceRec.stop(); } catch(e) {}
-            document.getElementById('voiceModalText').textContent = '';
-            
-            setTimeout(() => voiceStart(voiceMode), 200);
-        }
-        
-        // User presses בטל / סיום
         function voiceClose() {
             speechSynthesis.cancel();
             clearTimeout(voiceTimer);
