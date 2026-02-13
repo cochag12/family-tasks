@@ -1637,7 +1637,7 @@
         /* Floating Mic Button */
         .fab-mic {
             position: fixed;
-            bottom: calc(80px + env(safe-area-inset-bottom));
+            bottom: calc(110px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             width: 60px;
@@ -4865,6 +4865,8 @@
         let voiceInputMode = null; // 'task' or 'shopping'
         let voiceFinalText = '';
         let voiceInterimText = '';
+        let voiceTimeout = null;
+        let waitingForConfirmation = false;
         
         // Hide mic button if speech not supported
         if (!SpeechRecognition) {
@@ -4879,15 +4881,42 @@
             voiceRecognition.interimResults = true;
             
             voiceRecognition.onstart = () => {
+                if (waitingForConfirmation) return;
+                
                 document.getElementById('voiceModalIcon').textContent = '🔴';
                 document.getElementById('voiceModalStatus').textContent = '🎤 מקשיב... דבר עכשיו';
                 document.getElementById('voiceModalStatus').classList.add('recording');
                 document.getElementById('voiceModalActions').style.display = 'none';
                 voiceFinalText = '';
                 voiceInterimText = '';
+                
+                // Auto-stop after 5 seconds
+                voiceTimeout = setTimeout(() => {
+                    try { voiceRecognition.stop(); } catch(e) {}
+                }, 5000);
             };
             
             voiceRecognition.onresult = (event) => {
+                if (waitingForConfirmation) {
+                    // Listening for "כן" or "לא"
+                    let answer = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        answer += event.results[i][0].transcript;
+                    }
+                    answer = answer.trim();
+                    
+                    if (answer.includes('כן') || answer.includes('אשר') || answer.includes('נכון') || answer.includes('אישור')) {
+                        clearTimeout(voiceTimeout);
+                        waitingForConfirmation = false;
+                        confirmVoiceInput();
+                    } else if (answer.includes('לא') || answer.includes('שוב') || answer.includes('בטל') || answer.includes('חזור')) {
+                        clearTimeout(voiceTimeout);
+                        waitingForConfirmation = false;
+                        retryVoiceInput();
+                    }
+                    return;
+                }
+                
                 voiceInterimText = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -4901,6 +4930,15 @@
             
             voiceRecognition.onerror = (event) => {
                 console.error('Voice error:', event.error);
+                clearTimeout(voiceTimeout);
+                
+                if (waitingForConfirmation) {
+                    waitingForConfirmation = false;
+                    document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                    return;
+                }
+                
                 if (event.error === 'no-speech') {
                     document.getElementById('voiceModalStatus').textContent = '🤫 לא שמעתי, נסה שוב';
                     document.getElementById('voiceModalStatus').classList.remove('recording');
@@ -4912,6 +4950,16 @@
             };
             
             voiceRecognition.onend = () => {
+                clearTimeout(voiceTimeout);
+                
+                if (waitingForConfirmation) {
+                    // Confirmation listening ended without clear answer - show buttons
+                    waitingForConfirmation = false;
+                    document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                    return;
+                }
+                
                 const text = (voiceFinalText + voiceInterimText).trim();
                 document.getElementById('voiceModalIcon').textContent = '🎙️';
                 document.getElementById('voiceModalStatus').classList.remove('recording');
@@ -4920,9 +4968,23 @@
                     document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
                     document.getElementById('voiceModalActions').style.display = 'flex';
                     
-                    // Read back the text using TTS
-                    speakText(text, () => {
-                        document.getElementById('voiceModalStatus').textContent = 'האם הטקסט נכון?';
+                    // Read back the text + ask for voice confirmation
+                    speakText(text + '... האם לאשר?', () => {
+                        document.getElementById('voiceModalStatus').textContent = '🎤 אמור כן או לא...';
+                        
+                        // Listen for voice confirmation
+                        waitingForConfirmation = true;
+                        try {
+                            voiceRecognition.start();
+                            voiceTimeout = setTimeout(() => {
+                                waitingForConfirmation = false;
+                                try { voiceRecognition.stop(); } catch(e) {}
+                                document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                            }, 4000);
+                        } catch(e) {
+                            waitingForConfirmation = false;
+                            document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                        }
                     });
                 } else {
                     document.getElementById('voiceModalStatus').textContent = 'לא זוהה טקסט, נסה שוב';
@@ -5000,6 +5062,9 @@
         function confirmVoiceInput() {
             const text = document.getElementById('voiceModalText').textContent.trim();
             speechSynthesis.cancel();
+            clearTimeout(voiceTimeout);
+            waitingForConfirmation = false;
+            try { voiceRecognition.stop(); } catch(e) {}
             
             if (!text) {
                 cancelVoiceInput();
@@ -5128,6 +5193,8 @@
         
         function retryVoiceInput() {
             speechSynthesis.cancel();
+            clearTimeout(voiceTimeout);
+            waitingForConfirmation = false;
             document.getElementById('voiceModalText').textContent = '';
             voiceFinalText = '';
             voiceInterimText = '';
@@ -5141,6 +5208,8 @@
         
         function cancelVoiceInput() {
             speechSynthesis.cancel();
+            clearTimeout(voiceTimeout);
+            waitingForConfirmation = false;
             try { voiceRecognition.stop(); } catch(e) {}
             closeVoiceModal();
         }
