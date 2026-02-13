@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.6 (13/02/2026) - 🎙️ Voice Input: הקלטה קולית למשימות וקניות + הקראה + זיהוי שם אוטומטי!
     v9.5 (13/02/2026) - 🔒 Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים!
     v9.4 (10/02/2026) - 🧹 PWA Clean: ניקוי רעלים - Service Worker חסין שגיאות, בדיקת response.type!
     v9.3 (10/02/2026) - 🔧 PWA Fix: תיקון Service Worker - סינון chrome-extension, mobile-web-app-capable!
@@ -50,13 +51,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.5 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.6 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.5">
+    <meta name="version" content="9.6">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים! 🔒">
+    <meta name="changelog" content="Voice Input: הקלטה קולית + הקראה + זיהוי שם! 🎙️">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1632,12 +1633,148 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(0,0,0,0.3);
         }
+        /* Mic Button */
+        .btn-mic {
+            width: 44px;
+            height: 44px;
+            border: 2px solid rgba(129, 140, 248, 0.3);
+            background: rgba(129, 140, 248, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .btn-mic:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-mic.recording {
+            border-color: #F87171;
+            background: rgba(248, 113, 113, 0.15);
+            animation: mic-pulse 1s infinite;
+        }
+        
+        @keyframes mic-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(248,113,113,0); }
+        }
+        
+        /* Voice Confirmation Modal */
+        .voice-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .voice-modal-overlay.active {
+            display: flex;
+        }
+        
+        .voice-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeUp 0.3s ease;
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .voice-modal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .voice-modal-status {
+            font-size: 0.9rem;
+            color: #6B7280;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        .voice-modal-status.recording {
+            color: #EF4444;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .voice-modal-text {
+            background: #F3F4F6;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #1F2937;
+            min-height: 50px;
+            margin-bottom: 16px;
+            direction: rtl;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .voice-modal-text:empty::after {
+            content: '...מקשיב';
+            color: #9CA3AF;
+        }
+        
+        .voice-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .voice-modal-actions .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-voice-confirm {
+            background: #10B981;
+            color: white;
+        }
+        
+        .btn-voice-retry {
+            background: #F59E0B;
+            color: white;
+        }
+        
+        .btn-voice-cancel {
+            background: #EF4444;
+            color: white;
+        }
+        
     </style>
 </head>
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.5</div>
+        <div class="version-badge-login">v9.6</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1697,7 +1834,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.5</span>
+                        <span class="version-badge-header">v9.6</span>
                     </div>
                 </div>
                 
@@ -1733,7 +1870,12 @@
                 <div id="tasksTab" class="tab-content hidden">
                     <!-- Quick Add Task Card -->
                     <div class="card" style="padding: 12px;">
-                        <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="width: 100%; margin-bottom: 12px;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                            <input type="text" class="form-input" id="quickTaskInput" placeholder="שם המשימה..." style="flex: 1; margin: 0;" onkeypress="if(event.key === 'Enter') addQuickTask()">
+                            <button class="btn-mic" id="taskMicBtn" onclick="startVoiceInput('task')" title="הקלטה קולית">
+                                🎙️
+                            </button>
+                        </div>
                         
                         <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">
                             לחץ לבחירה:
@@ -1778,9 +1920,12 @@
                 <div id="shoppingTab" class="tab-content">
                     <div class="card">
                         <h3 class="card-title">➕ הוספת פריט</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" class="form-input" id="quickItemInput" placeholder="שם הפריט..." style="flex: 0 0 60%; margin: 0;" onkeypress="if(event.key === 'Enter') { event.preventDefault(); quickAddItem(event); }">
-                            <button type="button" class="btn btn-primary" onclick="quickAddItem(event)" style="flex: 0 0 calc(40% - 10px); white-space: nowrap;">➕ הוסף</button>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="quickItemInput" placeholder="שם הפריט..." style="flex: 1; margin: 0;" onkeypress="if(event.key === 'Enter') { event.preventDefault(); quickAddItem(event); }">
+                            <button class="btn-mic" id="shoppingMicBtn" onclick="startVoiceInput('shopping')" title="הקלטה קולית">
+                                🎙️
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="quickAddItem(event)" style="white-space: nowrap;">➕ הוסף</button>
                         </div>
                     </div>
                     
@@ -1814,6 +1959,20 @@
                         <h3 class="card-title">🏆 כוכבי השבוע</h3>
                         <div id="topPerformers"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Voice Input Modal -->
+        <div class="voice-modal-overlay" id="voiceModal">
+            <div class="voice-modal">
+                <div class="voice-modal-icon" id="voiceModalIcon">🎙️</div>
+                <div class="voice-modal-status" id="voiceModalStatus">מקשיב...</div>
+                <div class="voice-modal-text" id="voiceModalText"></div>
+                <div class="voice-modal-actions" id="voiceModalActions" style="display:none;">
+                    <button class="btn btn-voice-confirm" onclick="confirmVoiceInput()">✅ אשר</button>
+                    <button class="btn btn-voice-retry" onclick="retryVoiceInput()">🔄 הקלט שוב</button>
+                    <button class="btn btn-voice-cancel" onclick="cancelVoiceInput()">❌ בטל</button>
                 </div>
             </div>
         </div>
@@ -4502,7 +4661,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.5'
+                    version: '9.6'
                 };
                 
                 // Convert to JSON
@@ -4642,6 +4801,217 @@
                 return null;
             }
         }
+        // ==================== VOICE INPUT ====================
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let voiceRecognition = null;
+        let voiceInputMode = null; // 'task' or 'shopping'
+        let voiceFinalText = '';
+        let voiceInterimText = '';
+        
+        // Hide mic buttons if speech not supported
+        if (!SpeechRecognition) {
+            document.querySelectorAll('.btn-mic').forEach(btn => btn.style.display = 'none');
+        }
+        
+        if (SpeechRecognition) {
+            voiceRecognition = new SpeechRecognition();
+            voiceRecognition.lang = 'he-IL';
+            voiceRecognition.continuous = true;
+            voiceRecognition.interimResults = true;
+            
+            voiceRecognition.onstart = () => {
+                document.getElementById('voiceModalIcon').textContent = '🔴';
+                document.getElementById('voiceModalStatus').textContent = '🎤 מקשיב... דבר עכשיו';
+                document.getElementById('voiceModalStatus').classList.add('recording');
+                document.getElementById('voiceModalActions').style.display = 'none';
+                voiceFinalText = '';
+                voiceInterimText = '';
+            };
+            
+            voiceRecognition.onresult = (event) => {
+                voiceInterimText = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        voiceFinalText += event.results[i][0].transcript + ' ';
+                    } else {
+                        voiceInterimText += event.results[i][0].transcript;
+                    }
+                }
+                document.getElementById('voiceModalText').textContent = (voiceFinalText + voiceInterimText).trim();
+            };
+            
+            voiceRecognition.onerror = (event) => {
+                console.error('Voice error:', event.error);
+                if (event.error === 'no-speech') {
+                    document.getElementById('voiceModalStatus').textContent = '🤫 לא שמעתי, נסה שוב';
+                    document.getElementById('voiceModalStatus').classList.remove('recording');
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                } else if (event.error === 'not-allowed') {
+                    document.getElementById('voiceModalStatus').textContent = '⚠️ אנא אשר גישה למיקרופון';
+                    document.getElementById('voiceModalStatus').classList.remove('recording');
+                }
+            };
+            
+            voiceRecognition.onend = () => {
+                const text = (voiceFinalText + voiceInterimText).trim();
+                document.getElementById('voiceModalIcon').textContent = '🎙️';
+                document.getElementById('voiceModalStatus').classList.remove('recording');
+                
+                if (text) {
+                    document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                    
+                    // Read back the text using TTS
+                    speakText(text, () => {
+                        document.getElementById('voiceModalStatus').textContent = 'האם הטקסט נכון?';
+                    });
+                } else {
+                    document.getElementById('voiceModalStatus').textContent = 'לא זוהה טקסט, נסה שוב';
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                }
+                
+                // Reset mic button style
+                document.querySelectorAll('.btn-mic').forEach(btn => btn.classList.remove('recording'));
+            };
+        }
+        
+        function startVoiceInput(mode) {
+            if (!voiceRecognition) {
+                alert('הדפדפן לא תומך בהקלטה קולית. נסה Chrome.');
+                return;
+            }
+            
+            voiceInputMode = mode;
+            voiceFinalText = '';
+            voiceInterimText = '';
+            
+            // Open modal
+            document.getElementById('voiceModal').classList.add('active');
+            document.getElementById('voiceModalText').textContent = '';
+            document.getElementById('voiceModalActions').style.display = 'none';
+            
+            // Set mic button style
+            const micBtn = mode === 'task' ? document.getElementById('taskMicBtn') : document.getElementById('shoppingMicBtn');
+            if (micBtn) micBtn.classList.add('recording');
+            
+            // Start recognition
+            try {
+                voiceRecognition.start();
+            } catch(e) {
+                console.error('Voice start error:', e);
+            }
+        }
+        
+        function speakText(text, onDone) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'he-IL';
+                utterance.rate = 0.9;
+                
+                // Try to find Hebrew voice
+                const voices = speechSynthesis.getVoices();
+                const hebrewVoice = voices.find(v => v.lang.startsWith('he'));
+                if (hebrewVoice) utterance.voice = hebrewVoice;
+                
+                utterance.onend = () => { if (onDone) onDone(); };
+                utterance.onerror = () => { if (onDone) onDone(); };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                if (onDone) onDone();
+            }
+        }
+        
+        function confirmVoiceInput() {
+            const text = document.getElementById('voiceModalText').textContent.trim();
+            speechSynthesis.cancel();
+            
+            if (!text) {
+                cancelVoiceInput();
+                return;
+            }
+            
+            if (voiceInputMode === 'task') {
+                // Put text in task input
+                document.getElementById('quickTaskInput').value = text;
+                
+                // Try to auto-detect assignee from text
+                autoDetectAssignee(text);
+                
+                showToast('🎙️ משימה מהקלטה: ' + text);
+            } else if (voiceInputMode === 'shopping') {
+                // Put text in shopping input
+                document.getElementById('quickItemInput').value = text;
+                showToast('🎙️ פריט מהקלטה: ' + text);
+            }
+            
+            closeVoiceModal();
+        }
+        
+        function autoDetectAssignee(text) {
+            const textLower = text.trim();
+            
+            // Check if any family member name is mentioned
+            const nameMap = {};
+            Object.values(familyMembers).forEach(m => {
+                nameMap[m.name] = m.id;
+            });
+            
+            for (const [name, id] of Object.entries(nameMap)) {
+                if (textLower.includes(name)) {
+                    // Select this assignee
+                    quickSelectedAssignee = id;
+                    const grid = document.getElementById('quickAssigneeGrid');
+                    grid.querySelectorAll('.assignee-btn').forEach(btn => {
+                        btn.classList.toggle('selected', btn.dataset.id === id);
+                    });
+                    
+                    // Remove the name from the task text
+                    const cleanText = textLower.replace(name, '').replace(/\s+/g, ' ').trim();
+                    if (cleanText) {
+                        document.getElementById('quickTaskInput').value = cleanText;
+                    }
+                    
+                    showToast(`👤 שויך ל-${name}`);
+                    return;
+                }
+            }
+        }
+        
+        function retryVoiceInput() {
+            speechSynthesis.cancel();
+            document.getElementById('voiceModalText').textContent = '';
+            voiceFinalText = '';
+            voiceInterimText = '';
+            
+            try {
+                voiceRecognition.start();
+            } catch(e) {
+                console.error('Voice retry error:', e);
+            }
+        }
+        
+        function cancelVoiceInput() {
+            speechSynthesis.cancel();
+            try { voiceRecognition.stop(); } catch(e) {}
+            closeVoiceModal();
+        }
+        
+        function closeVoiceModal() {
+            document.getElementById('voiceModal').classList.remove('active');
+            document.querySelectorAll('.btn-mic').forEach(btn => btn.classList.remove('recording'));
+        }
+        
+        // Load voices (needed for some browsers)
+        if ('speechSynthesis' in window) {
+            speechSynthesis.getVoices();
+            speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+        }
+        
     </script>
 </body>
 </html>
