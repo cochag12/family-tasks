@@ -4817,7 +4817,7 @@
         if (SpeechRecognition) {
             voiceRecognition = new SpeechRecognition();
             voiceRecognition.lang = 'he-IL';
-            voiceRecognition.continuous = true;
+            voiceRecognition.continuous = false;
             voiceRecognition.interimResults = true;
             
             voiceRecognition.onstart = () => {
@@ -4936,17 +4936,22 @@
             }
             
             if (voiceInputMode === 'task') {
-                // Put text in task input
                 document.getElementById('quickTaskInput').value = text;
                 
                 // Try to auto-detect assignee from text
                 autoDetectAssignee(text);
                 
-                showToast('🎙️ משימה מהקלטה: ' + text);
+                // Auto-add the task if assignee is selected
+                if (quickSelectedAssignee) {
+                    addQuickTask();
+                } else {
+                    showToast('🎙️ בחר למי לשייך ולחץ הוסף');
+                }
             } else if (voiceInputMode === 'shopping') {
-                // Put text in shopping input
                 document.getElementById('quickItemInput').value = text;
-                showToast('🎙️ פריט מהקלטה: ' + text);
+                // Auto-add shopping item
+                quickAddItem(new Event('click'));
+                showToast('🛒 נוסף: ' + text);
             }
             
             closeVoiceModal();
