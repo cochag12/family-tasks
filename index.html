@@ -2129,17 +2129,24 @@
         
         let appInitialized = false;
         
+        function safeInitializeApp() {
+            if (!appInitialized) {
+                appInitialized = true;
+                initializeApp();
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             // מחכים שה-Auth יסתיים לפני אתחול האפליקציה
             firebase.auth().onAuthStateChanged(function(user) {
-                if (user && !appInitialized) {
+                if (user) {
                     console.log('🔒 Auth ready, UID:', user.uid);
-                    appInitialized = true;
-                    initializeApp();
-                } else if (!user) {
-                    console.log('⏳ ממתין לאימות...');
                 }
+                safeInitializeApp();
             });
+            
+            // Fallback: אם Auth לא מגיב תוך 3 שניות, נטען בכל זאת
+            setTimeout(safeInitializeApp, 3000);
         });
         
         function initializeApp() {
@@ -2164,7 +2171,23 @@
             const grid = document.getElementById('loginGrid');
             grid.innerHTML = '';
             
-            // Get pending tasks count for each user from Firebase
+            // הצג כרטיסים מיד (בלי לחכות ל-Firebase)
+            Object.values(familyMembers).forEach(member => {
+                const card = document.createElement('div');
+                card.className = 'login-card';
+                card.id = 'login-card-' + member.id;
+                card.onclick = () => loginUser(member.id);
+                
+                card.innerHTML = `
+                    <div class="login-icon">${member.icon}</div>
+                    <div class="login-name">${member.name}</div>
+                    <div class="login-role">${member.roleDescription || member.role}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            // נסה להוסיף ספירת משימות מ-Firebase (לא חוסם את ההצגה)
             tasksRef.once('value', (snapshot) => {
                 const tasksData = snapshot.val() || {};
                 
@@ -2173,19 +2196,18 @@
                         task.assignedTo === member.id && task.status === 'pending'
                     ).length;
                     
-                    const card = document.createElement('div');
-                    card.className = 'login-card';
-                    card.onclick = () => loginUser(member.id);
-                    
-                    card.innerHTML = `
-                        <div class="login-icon">${member.icon}</div>
-                        <div class="login-name">${member.name}</div>
-                        <div class="login-role">${member.roleDescription || member.role}</div>
-                        ${pendingCount > 0 ? `<div class="login-badge pending">${pendingCount} משימות</div>` : ''}
-                    `;
-                    
-                    grid.appendChild(card);
+                    if (pendingCount > 0) {
+                        const card = document.getElementById('login-card-' + member.id);
+                        if (card) {
+                            const badge = document.createElement('div');
+                            badge.className = 'login-badge pending';
+                            badge.textContent = pendingCount + ' משימות';
+                            card.appendChild(badge);
+                        }
+                    }
                 });
+            }).catch((error) => {
+                console.log('⚠️ לא ניתן לטעון ספירת משימות:', error.message);
             });
         }
         
