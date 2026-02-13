@@ -3,7 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
-    v9.5 (13/02/2026) - 🔒 Firebase Auth: הוספת Anonymous Authentication לאבטחת מסד הנתונים!
+    v9.5 (13/02/2026) - 🔒 Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים!
     v9.4 (10/02/2026) - 🧹 PWA Clean: ניקוי רעלים - Service Worker חסין שגיאות, בדיקת response.type!
     v9.3 (10/02/2026) - 🔧 PWA Fix: תיקון Service Worker - סינון chrome-extension, mobile-web-app-capable!
     v9.2 (10/02/2026) - 📱 PWA Support: הפיכה לאפליקציה מתקנת! manifest, service worker, אייקונים!
@@ -56,7 +56,7 @@
     <meta name="version" content="9.5">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Firebase Auth: הוספת Anonymous Authentication לאבטחת מסד הנתונים! 🔒">
+    <meta name="changelog" content="Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים! 🔒">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1982,16 +1982,9 @@
         }
         
         // Anonymous Authentication - אבטחת מסד הנתונים
-        let firebaseAuthReady = false;
-        firebase.auth().signInAnonymously()
-            .then(() => {
-                console.log('🔒 LOBALI: התחברות אנונימית הצליחה');
-                firebaseAuthReady = true;
-            })
-            .catch((error) => {
-                console.error('❌ שגיאת אימות:', error);
-                firebaseAuthReady = true;
-            });
+        firebase.auth().signInAnonymously().catch((error) => {
+            console.error('❌ שגיאת אימות:', error);
+        });
         
         const db = firebase.database();
         
@@ -2129,24 +2122,20 @@
         
         let appInitialized = false;
         
-        function safeInitializeApp() {
-            if (!appInitialized) {
-                appInitialized = true;
-                initializeApp();
-            }
-        }
-        
         document.addEventListener('DOMContentLoaded', function() {
-            // מחכים שה-Auth יסתיים לפני אתחול האפליקציה
             firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    console.log('🔒 Auth ready, UID:', user.uid);
+                if (!appInitialized) {
+                    appInitialized = true;
+                    initializeApp();
                 }
-                safeInitializeApp();
             });
-            
-            // Fallback: אם Auth לא מגיב תוך 3 שניות, נטען בכל זאת
-            setTimeout(safeInitializeApp, 3000);
+            // Fallback - אם Auth לא מגיב תוך 3 שניות
+            setTimeout(function() {
+                if (!appInitialized) {
+                    appInitialized = true;
+                    initializeApp();
+                }
+            }, 3000);
         });
         
         function initializeApp() {
@@ -2171,7 +2160,7 @@
             const grid = document.getElementById('loginGrid');
             grid.innerHTML = '';
             
-            // הצג כרטיסים מיד (בלי לחכות ל-Firebase)
+            // הצג כרטיסים מיד
             Object.values(familyMembers).forEach(member => {
                 const card = document.createElement('div');
                 card.className = 'login-card';
@@ -2187,15 +2176,13 @@
                 grid.appendChild(card);
             });
             
-            // נסה להוסיף ספירת משימות מ-Firebase (לא חוסם את ההצגה)
-            tasksRef.once('value', (snapshot) => {
+            // הוסף ספירת משימות ברקע
+            tasksRef.once('value').then((snapshot) => {
                 const tasksData = snapshot.val() || {};
-                
                 Object.values(familyMembers).forEach(member => {
                     const pendingCount = Object.values(tasksData).filter(task => 
                         task.assignedTo === member.id && task.status === 'pending'
                     ).length;
-                    
                     if (pendingCount > 0) {
                         const card = document.getElementById('login-card-' + member.id);
                         if (card) {
@@ -2206,9 +2193,7 @@
                         }
                     }
                 });
-            }).catch((error) => {
-                console.log('⚠️ לא ניתן לטעון ספירת משימות:', error.message);
-            });
+            }).catch(() => {});
         }
         
         async function loginUser(userId) {
