@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.7 (13/02/2026) - 👥 General Tasks: משימות כלליות לכולם! כפתור "כולם" + פילטר + הקלטה קולית חכמה!
     v9.6 (13/02/2026) - 🎙️ Voice Input: הקלטה קולית למשימות וקניות + הקראה + זיהוי שם אוטומטי!
     v9.5 (13/02/2026) - 🔒 Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים!
     v9.4 (10/02/2026) - 🧹 PWA Clean: ניקוי רעלים - Service Worker חסין שגיאות, בדיקת response.type!
@@ -51,13 +52,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.6 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.7 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.6">
+    <meta name="version" content="9.7">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Voice Input: הקלטה קולית + הקראה + זיהוי שם! 🎙️">
+    <meta name="changelog" content="General Tasks: משימות כלליות לכולם + הקלטה חכמה! 👥">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1774,7 +1775,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.6</div>
+        <div class="version-badge-login">v9.7</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1834,7 +1835,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.6</span>
+                        <span class="version-badge-header">v9.7</span>
                     </div>
                 </div>
                 
@@ -1909,6 +1910,10 @@
                         <button class="filter-btn" id="myTasksFilter" onclick="filterTasks('my-tasks', event)">
                             המשימות שלי
                             <span class="filter-count" id="myTasksCount">0</span>
+                        </button>
+                        <button class="filter-btn" onclick="filterTasks('general', event)">
+                            כלליות
+                            <span class="filter-count" id="generalTasksCount">0</span>
                         </button>
                     </div>
 
@@ -2769,10 +2774,24 @@
             
             grid.innerHTML = '';
             
+            // Add "General" (everyone) option
+            const generalBtn = document.createElement('button');
+            generalBtn.type = 'button';
+            generalBtn.className = 'assignee-btn';
+            generalBtn.dataset.id = 'general';
+            generalBtn.style.color = '#9C27B0';
+            generalBtn.onclick = (e) => selectQuickAssignee('general', e);
+            generalBtn.innerHTML = `
+                <div class="assignee-icon">👥</div>
+                <div class="assignee-name">כולם</div>
+            `;
+            grid.appendChild(generalBtn);
+            
             Object.values(familyMembers).forEach(member => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'assignee-btn';
+                btn.dataset.id = member.id;
                 btn.style.color = member.color;
                 btn.onclick = (e) => selectQuickAssignee(member.id, e);
                 
@@ -2808,26 +2827,50 @@
                 return;
             }
             
-            const assignee = familyMembers[quickSelectedAssignee];
+            let newTask;
             
-            const newTask = {
-                id: 'task_' + Date.now(),
-                title: taskName,
-                description: '',
-                assignedTo: assignee.id,
-                assignedToName: assignee.name,
-                assignedToIcon: assignee.icon,
-                assignedToColor: assignee.color,
-                priority: 'medium',
-                status: 'pending',
-                createdAt: Date.now(),
-                createdBy: currentUser.name,
-                createdById: currentUser.id,
-                isPinned: false,
-                isPersonal: assignee.id === currentUser.id, // ← משימה עצמאית אם מוסיף לעצמו
-                isRecurring: false,
-                dueDate: null
-            };
+            if (quickSelectedAssignee === 'general') {
+                newTask = {
+                    id: 'task_' + Date.now(),
+                    title: taskName,
+                    description: '',
+                    assignedTo: 'general',
+                    assignedToName: 'כולם',
+                    assignedToIcon: '👥',
+                    assignedToColor: '#9C27B0',
+                    priority: 'medium',
+                    status: 'pending',
+                    createdAt: Date.now(),
+                    createdBy: currentUser.name,
+                    createdById: currentUser.id,
+                    isPinned: false,
+                    isPersonal: false,
+                    isGeneral: true,
+                    isRecurring: false,
+                    dueDate: null
+                };
+            } else {
+                const assignee = familyMembers[quickSelectedAssignee];
+                newTask = {
+                    id: 'task_' + Date.now(),
+                    title: taskName,
+                    description: '',
+                    assignedTo: assignee.id,
+                    assignedToName: assignee.name,
+                    assignedToIcon: assignee.icon,
+                    assignedToColor: assignee.color,
+                    priority: 'medium',
+                    status: 'pending',
+                    createdAt: Date.now(),
+                    createdBy: currentUser.name,
+                    createdById: currentUser.id,
+                    isPinned: false,
+                    isPersonal: assignee.id === currentUser.id,
+                    isGeneral: false,
+                    isRecurring: false,
+                    dueDate: null
+                };
+            }
             
             isSyncing = true;
             updateSyncStatus();
@@ -2841,7 +2884,7 @@
                     const grid = document.getElementById('quickAssigneeGrid');
                     grid.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
                     
-                    showToast(`✅ משימה נוספה ל-${assignee.name}!`);
+                    showToast(`✅ משימה נוספה ל-${newTask.assignedToName}!`);
                 })
                 .catch(error => {
                     console.error('Error adding task:', error);
@@ -2973,19 +3016,19 @@
             
             // Filter by visibility based on user role
             if (currentUser.isAdmin) {
-                // Admins (Liat and Hagai) see all non-personal tasks + their own personal tasks
+                // Admins (Liat and Hagai) see all non-personal tasks + their own personal tasks + general
                 // Hagai sees everything including all personal tasks
                 if (currentUser.id !== 'hagai') {
                     // Liat sees all tasks except personal tasks of others
                     filteredTasks = filteredTasks.filter(task => 
-                        !task.isPersonal || task.assignedTo === currentUser.id
+                        !task.isPersonal || task.assignedTo === currentUser.id || task.isGeneral
                     );
                 }
                 // Hagai sees ALL tasks (no filter)
             } else {
-                // Regular users see: their own tasks only (both personal and regular)
+                // Regular users see: their own tasks + general tasks
                 filteredTasks = filteredTasks.filter(task => 
-                    task.assignedTo === currentUser.id
+                    task.assignedTo === currentUser.id || task.isGeneral || task.assignedTo === 'general'
                 );
             }
             
@@ -3030,6 +3073,11 @@
                     
                     return true;
                 });
+            } else if (currentFilter === 'general') {
+                // Show only general tasks (assigned to everyone)
+                filteredTasks = filteredTasks.filter(t => 
+                    (t.isGeneral || t.assignedTo === 'general') && t.status === 'pending'
+                );
             }
             
             // Sort: pinned first, then by status, then by date
@@ -3081,10 +3129,12 @@
             const pending = allTasks.filter(t => shouldCountTask(t) && t.status === 'pending').length;
             const personal = allTasks.filter(t => shouldCountTask(t) && t.isPersonal && t.assignedTo === currentUser.id).length;
             const myTasks = allTasks.filter(t => shouldCountTask(t) && t.assignedTo === currentUser.id).length;
+            const generalTasks = Object.values(tasks).filter(t => shouldCountTask(t) && (t.isGeneral || t.assignedTo === 'general')).length;
             
             document.getElementById('pendingTasksCount').textContent = pending;
             document.getElementById('personalTasksCount').textContent = personal;
             document.getElementById('myTasksCount').textContent = myTasks;
+            document.getElementById('generalTasksCount').textContent = generalTasks;
             
             if (filteredTasks.length === 0) {
                 const emptyMessage = tasksSearchQuery 
@@ -4661,7 +4711,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.6'
+                    version: '9.7'
                 };
                 
                 // Convert to JSON
@@ -4936,22 +4986,90 @@
             }
             
             if (voiceInputMode === 'task') {
-                document.getElementById('quickTaskInput').value = text;
-                
                 // Try to auto-detect assignee from text
-                autoDetectAssignee(text);
+                let taskText = text;
+                let detectedAssignee = null;
                 
-                // Auto-add the task if assignee is selected
-                if (quickSelectedAssignee) {
-                    addQuickTask();
+                Object.values(familyMembers).forEach(m => {
+                    if (text.includes(m.name)) {
+                        detectedAssignee = m;
+                        taskText = text.replace(m.name, '').replace(/\s+/g, ' ').trim();
+                    }
+                });
+                
+                if (detectedAssignee) {
+                    // Add task to specific person
+                    const newTask = {
+                        id: 'task_' + Date.now(),
+                        title: taskText || text,
+                        description: '',
+                        assignedTo: detectedAssignee.id,
+                        assignedToName: detectedAssignee.name,
+                        assignedToIcon: detectedAssignee.icon,
+                        assignedToColor: detectedAssignee.color,
+                        priority: 'medium',
+                        status: 'pending',
+                        createdAt: Date.now(),
+                        createdBy: currentUser.name,
+                        createdById: currentUser.id,
+                        isPinned: false,
+                        isPersonal: detectedAssignee.id === currentUser.id,
+                        isGeneral: false,
+                        isRecurring: false,
+                        dueDate: null
+                    };
+                    
+                    tasksRef.child(newTask.id).set(newTask).then(() => {
+                        showToast('✅ משימה נוספה ל-' + detectedAssignee.name + ': ' + (taskText || text));
+                    });
                 } else {
-                    showToast('🎙️ בחר למי לשייך ולחץ הוסף');
+                    // No name detected - create general task
+                    const newTask = {
+                        id: 'task_' + Date.now(),
+                        title: taskText,
+                        description: '',
+                        assignedTo: 'general',
+                        assignedToName: 'כולם',
+                        assignedToIcon: '👥',
+                        assignedToColor: '#9C27B0',
+                        priority: 'medium',
+                        status: 'pending',
+                        createdAt: Date.now(),
+                        createdBy: currentUser.name,
+                        createdById: currentUser.id,
+                        isPinned: false,
+                        isPersonal: false,
+                        isGeneral: true,
+                        isRecurring: false,
+                        dueDate: null
+                    };
+                    
+                    tasksRef.child(newTask.id).set(newTask).then(() => {
+                        showToast('✅ משימה כללית נוספה: ' + taskText);
+                    });
                 }
+                
             } else if (voiceInputMode === 'shopping') {
-                document.getElementById('quickItemInput').value = text;
-                // Auto-add shopping item
-                quickAddItem(new Event('click'));
-                showToast('🛒 נוסף: ' + text);
+                // Add shopping item directly to Firebase
+                const itemId = 'item_' + Date.now();
+                const item = {
+                    id: itemId,
+                    name: text,
+                    addedBy: currentUser.name,
+                    addedById: currentUser.id,
+                    addedByIcon: currentUser.icon,
+                    addedByColor: currentUser.color,
+                    addedAt: Date.now(),
+                    status: 'pending',
+                    purchasedAt: null,
+                    purchasedBy: null,
+                    purchasedById: null,
+                    isPinned: false
+                };
+                
+                shoppingRef.child(itemId).set(item).then(() => {
+                    showToast('🛒 נוסף: ' + text);
+                });
             }
             
             closeVoiceModal();
