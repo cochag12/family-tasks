@@ -4870,6 +4870,7 @@
         let voiceTimeout = null;
         // State: 'idle' | 'recording' | 'playback' | 'listening_confirm' | 'done'
         let voiceState = 'idle';
+        let voiceGeneration = 0; // prevents stale speakText callbacks
         
         // Hide mic button if speech not supported
         if (!SpeechRecognition) {
@@ -5008,10 +5009,14 @@
                 
                 if (text) {
                     voiceState = 'playback';
+                    const gen = ++voiceGeneration;
                     document.getElementById('voiceModalActions').style.display = 'flex';
                     document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
                     
                     speakText(text + '... לאשר?', () => {
+                        // Guard: if stale callback or already confirmed/cancelled
+                        if (gen !== voiceGeneration || voiceState !== 'playback') return;
+                        
                         // After readback, try voice confirmation
                         voiceState = 'listening_confirm';
                         document.getElementById('voiceModalStatus').textContent = '🎤 אמור כן או לא...';
@@ -5060,6 +5065,7 @@
             voiceFinalText = '';
             voiceInterimText = '';
             voiceState = 'idle';
+            voiceGeneration++;
             speechSynthesis.cancel();
             
             document.getElementById('voiceModal').classList.add('active');
@@ -5097,6 +5103,7 @@
         
         function confirmVoiceInput() {
             voiceState = 'done';
+            voiceGeneration++; // invalidate any pending speakText callbacks
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
             try { voiceRecognition.stop(); } catch(e) {}
@@ -5200,12 +5207,16 @@
         
         function askAddMore() {
             voiceState = 'playback';
+            const gen = ++voiceGeneration;
             document.getElementById('voiceModalText').textContent = '';
             document.getElementById('voiceModalActions').style.display = 'none';
             document.getElementById('voiceModalIcon').textContent = '✅';
             document.getElementById('voiceModalStatus').textContent = '🔊 נוסף! להוסיף עוד?';
             
             speakText('נוסף בהצלחה! להוסיף עוד?', () => {
+                // Guard: if cancelled during playback, don't start listening
+                if (gen !== voiceGeneration || voiceState !== 'playback') return;
+                
                 voiceState = 'listening_add_more';
                 document.getElementById('voiceModalStatus').textContent = '🎤 אמור כן או לא...';
                 document.getElementById('voiceModalActions').style.display = 'flex';
@@ -5258,6 +5269,7 @@
         
         function retryVoiceInput() {
             voiceState = 'idle';
+            voiceGeneration++;
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
             try { voiceRecognition.stop(); } catch(e) {}
@@ -5277,6 +5289,7 @@
         
         function cancelVoiceInput() {
             voiceState = 'done';
+            voiceGeneration++;
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
             try { voiceRecognition.stop(); } catch(e) {}
