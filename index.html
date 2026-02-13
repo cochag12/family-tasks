@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.5 (13/02/2026) - 🔒 Firebase Auth: הוספת Anonymous Authentication לאבטחת מסד הנתונים!
     v9.4 (10/02/2026) - 🧹 PWA Clean: ניקוי רעלים - Service Worker חסין שגיאות, בדיקת response.type!
     v9.3 (10/02/2026) - 🔧 PWA Fix: תיקון Service Worker - סינון chrome-extension, mobile-web-app-capable!
     v9.2 (10/02/2026) - 📱 PWA Support: הפיכה לאפליקציה מתקנת! manifest, service worker, אייקונים!
@@ -49,13 +50,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.4 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.5 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.4">
-    <meta name="last-updated" content="2026-02-10">
+    <meta name="version" content="9.5">
+    <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="PWA Clean: ניקוי רעלים - Service Worker חסין שגיאות! 🧹">
+    <meta name="changelog" content="Firebase Auth: הוספת Anonymous Authentication לאבטחת מסד הנתונים! 🔒">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1636,7 +1637,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.4</div>
+        <div class="version-badge-login">v9.5</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1696,7 +1697,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.4</span>
+                        <span class="version-badge-header">v9.5</span>
                     </div>
                 </div>
                 
@@ -1979,6 +1980,16 @@
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
+        
+        // Anonymous Authentication - אבטחת מסד הנתונים
+        firebase.auth().signInAnonymously()
+            .then(() => {
+                console.log('🔒 LOBALI: התחברות אנונימית הצליחה');
+            })
+            .catch((error) => {
+                console.error('❌ שגיאת אימות:', error);
+            });
+        
         const db = firebase.database();
         
         // Firebase references
@@ -4470,7 +4481,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.4'
+                    version: '9.5'
                 };
                 
                 // Convert to JSON
