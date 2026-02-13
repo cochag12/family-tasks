@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.8 (13/02/2026) - 🎤 Voice Confirm: אישור קולי (כן/אשר/לא/בטל) + הגבלת 5 שניות + תיקון הקראה כפולה!
     v9.7 (13/02/2026) - 👥 General Tasks: משימות כלליות לכולם! כפתור "כולם" + פילטר + הקלטה קולית חכמה!
     v9.6 (13/02/2026) - 🎙️ Voice Input: הקלטה קולית למשימות וקניות + הקראה + זיהוי שם אוטומטי!
     v9.5 (13/02/2026) - 🔒 Firebase Auth: Anonymous Authentication + אבטחת מסד נתונים!
@@ -52,13 +53,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.7 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.8 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.7">
+    <meta name="version" content="9.8">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="General Tasks: משימות כלליות לכולם + הקלטה חכמה! 👥">
+    <meta name="changelog" content="Voice Confirm: אישור קולי + הגבלת 5 שניות + תיקון הקראה כפולה! 🎤">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1782,7 +1783,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.7</div>
+        <div class="version-badge-login">v9.8</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1842,7 +1843,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.7</span>
+                        <span class="version-badge-header">v9.8</span>
                     </div>
                 </div>
                 
@@ -4718,7 +4719,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.7'
+                    version: '9.8'
                 };
                 
                 // Convert to JSON
@@ -4862,12 +4863,12 @@
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let voiceRecognition = null;
-        let voiceInputMode = null; // 'task' or 'shopping'
+        let voiceInputMode = null;
         let voiceFinalText = '';
         let voiceInterimText = '';
         let voiceTimeout = null;
-        let waitingForConfirmation = false;
-        let voiceActionTaken = false;
+        // State: 'idle' | 'recording' | 'playback' | 'listening_confirm' | 'done'
+        let voiceState = 'idle';
         
         // Hide mic button if speech not supported
         if (!SpeechRecognition) {
@@ -4882,8 +4883,9 @@
             voiceRecognition.interimResults = true;
             
             voiceRecognition.onstart = () => {
-                if (waitingForConfirmation) return;
+                if (voiceState === 'listening_confirm') return;
                 
+                voiceState = 'recording';
                 document.getElementById('voiceModalIcon').textContent = '🔴';
                 document.getElementById('voiceModalStatus').textContent = '🎤 מקשיב... דבר עכשיו';
                 document.getElementById('voiceModalStatus').classList.add('recording');
@@ -4891,15 +4893,13 @@
                 voiceFinalText = '';
                 voiceInterimText = '';
                 
-                // Auto-stop after 5 seconds
                 voiceTimeout = setTimeout(() => {
                     try { voiceRecognition.stop(); } catch(e) {}
                 }, 5000);
             };
             
             voiceRecognition.onresult = (event) => {
-                if (waitingForConfirmation) {
-                    // Listening for "כן" or "לא"
+                if (voiceState === 'listening_confirm') {
                     let answer = '';
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         answer += event.results[i][0].transcript;
@@ -4907,14 +4907,14 @@
                     answer = answer.trim();
                     
                     if (answer.includes('כן') || answer.includes('אשר') || answer.includes('נכון') || answer.includes('אישור')) {
+                        voiceState = 'done';
                         clearTimeout(voiceTimeout);
-                        waitingForConfirmation = false;
-                        voiceActionTaken = true;
+                        try { voiceRecognition.stop(); } catch(e) {}
                         confirmVoiceInput();
                     } else if (answer.includes('לא') || answer.includes('שוב') || answer.includes('בטל') || answer.includes('חזור')) {
+                        voiceState = 'done';
                         clearTimeout(voiceTimeout);
-                        waitingForConfirmation = false;
-                        voiceActionTaken = true;
+                        try { voiceRecognition.stop(); } catch(e) {}
                         retryVoiceInput();
                     }
                     return;
@@ -4935,18 +4935,20 @@
                 console.error('Voice error:', event.error);
                 clearTimeout(voiceTimeout);
                 
-                if (waitingForConfirmation) {
-                    waitingForConfirmation = false;
+                if (voiceState === 'listening_confirm') {
+                    voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
                     document.getElementById('voiceModalActions').style.display = 'flex';
                     return;
                 }
                 
                 if (event.error === 'no-speech') {
+                    voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = '🤫 לא שמעתי, נסה שוב';
                     document.getElementById('voiceModalStatus').classList.remove('recording');
                     document.getElementById('voiceModalActions').style.display = 'flex';
                 } else if (event.error === 'not-allowed') {
+                    voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = '⚠️ אנא אשר גישה למיקרופון';
                     document.getElementById('voiceModalStatus').classList.remove('recording');
                 }
@@ -4955,58 +4957,57 @@
             voiceRecognition.onend = () => {
                 clearTimeout(voiceTimeout);
                 
-                // If action was already taken (confirm/retry/cancel), skip
-                if (voiceActionTaken) {
-                    voiceActionTaken = false;
+                // If already handled (confirm/retry/cancel called), do nothing
+                if (voiceState === 'done' || voiceState === 'playback') {
                     return;
                 }
                 
-                if (waitingForConfirmation) {
-                    // Confirmation listening ended without clear answer - show buttons
-                    waitingForConfirmation = false;
+                if (voiceState === 'listening_confirm') {
+                    // Confirmation listening ended without answer - show buttons
+                    voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
                     document.getElementById('voiceModalActions').style.display = 'flex';
                     return;
                 }
                 
+                // Recording ended - read back
                 const text = (voiceFinalText + voiceInterimText).trim();
                 document.getElementById('voiceModalIcon').textContent = '🎙️';
                 document.getElementById('voiceModalStatus').classList.remove('recording');
+                document.getElementById('fabMicBtn').classList.remove('recording');
                 
                 if (text) {
-                    document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
+                    voiceState = 'playback';
                     document.getElementById('voiceModalActions').style.display = 'flex';
+                    document.getElementById('voiceModalStatus').textContent = '🔊 מקריא...';
                     
-                    // Read back the text + ask for voice confirmation
-                    speakText(text + '... האם לאשר?', () => {
+                    speakText(text + '... לאשר?', () => {
+                        // After readback, try voice confirmation
+                        voiceState = 'listening_confirm';
                         document.getElementById('voiceModalStatus').textContent = '🎤 אמור כן או לא...';
-                        
-                        // Listen for voice confirmation
-                        waitingForConfirmation = true;
                         try {
                             voiceRecognition.start();
                             voiceTimeout = setTimeout(() => {
-                                waitingForConfirmation = false;
-                                try { voiceRecognition.stop(); } catch(e) {}
-                                document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                                if (voiceState === 'listening_confirm') {
+                                    voiceState = 'idle';
+                                    try { voiceRecognition.stop(); } catch(e) {}
+                                    document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                                }
                             }, 4000);
                         } catch(e) {
-                            waitingForConfirmation = false;
+                            voiceState = 'idle';
                             document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
                         }
                     });
                 } else {
+                    voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = 'לא זוהה טקסט, נסה שוב';
                     document.getElementById('voiceModalActions').style.display = 'flex';
                 }
-                
-                // Reset mic button style
-                document.getElementById('fabMicBtn').classList.remove('recording');
             };
         }
         
         function startVoiceInputSmart() {
-            // Auto-detect mode based on active tab
             const shoppingTab = document.getElementById('shoppingTab');
             const tasksTab = document.getElementById('tasksTab');
             
@@ -5015,7 +5016,7 @@
             } else if (!tasksTab.classList.contains('hidden')) {
                 startVoiceInput('task');
             } else {
-                startVoiceInput('task'); // default
+                startVoiceInput('task');
             }
         }
         
@@ -5028,18 +5029,14 @@
             voiceInputMode = mode;
             voiceFinalText = '';
             voiceInterimText = '';
-            voiceActionTaken = false;
-            waitingForConfirmation = false;
+            voiceState = 'idle';
+            speechSynthesis.cancel();
             
-            // Open modal
             document.getElementById('voiceModal').classList.add('active');
             document.getElementById('voiceModalText').textContent = '';
             document.getElementById('voiceModalActions').style.display = 'none';
-            
-            // Set fab mic button style
             document.getElementById('fabMicBtn').classList.add('recording');
             
-            // Start recognition
             try {
                 voiceRecognition.start();
             } catch(e) {
@@ -5049,14 +5046,12 @@
         
         function speakText(text, onDone) {
             if ('speechSynthesis' in window) {
-                // Cancel any ongoing speech
                 speechSynthesis.cancel();
                 
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'he-IL';
                 utterance.rate = 0.9;
                 
-                // Try to find Hebrew voice
                 const voices = speechSynthesis.getVoices();
                 const hebrewVoice = voices.find(v => v.lang.startsWith('he'));
                 if (hebrewVoice) utterance.voice = hebrewVoice;
@@ -5071,11 +5066,12 @@
         }
         
         function confirmVoiceInput() {
-            const text = document.getElementById('voiceModalText').textContent.trim();
+            voiceState = 'done';
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
-            waitingForConfirmation = false;
             try { voiceRecognition.stop(); } catch(e) {}
+            
+            const text = document.getElementById('voiceModalText').textContent.trim();
             
             if (!text) {
                 cancelVoiceInput();
@@ -5203,29 +5199,34 @@
         }
         
         function retryVoiceInput() {
+            voiceState = 'idle';
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
-            waitingForConfirmation = false;
+            try { voiceRecognition.stop(); } catch(e) {}
             document.getElementById('voiceModalText').textContent = '';
             voiceFinalText = '';
             voiceInterimText = '';
             
-            try {
-                voiceRecognition.start();
-            } catch(e) {
-                console.error('Voice retry error:', e);
-            }
+            // Small delay to let recognition fully stop
+            setTimeout(() => {
+                try {
+                    voiceRecognition.start();
+                } catch(e) {
+                    console.error('Voice retry error:', e);
+                }
+            }, 200);
         }
         
         function cancelVoiceInput() {
+            voiceState = 'done';
             speechSynthesis.cancel();
             clearTimeout(voiceTimeout);
-            waitingForConfirmation = false;
             try { voiceRecognition.stop(); } catch(e) {}
             closeVoiceModal();
         }
         
         function closeVoiceModal() {
+            voiceState = 'idle';
             document.getElementById('voiceModal').classList.remove('active');
             document.getElementById('fabMicBtn').classList.remove('recording');
         }
