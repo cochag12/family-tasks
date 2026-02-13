@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v9.9 (13/02/2026) - 🔄 Voice Loop: אחרי הוספה שואל "להוסיף עוד?" + לולאת הקלטה רציפה!
     v9.8 (13/02/2026) - 🎤 Voice Confirm: אישור קולי (כן/אשר/לא/בטל) + הגבלת 5 שניות + תיקון הקראה כפולה!
     v9.7 (13/02/2026) - 👥 General Tasks: משימות כלליות לכולם! כפתור "כולם" + פילטר + הקלטה קולית חכמה!
     v9.6 (13/02/2026) - 🎙️ Voice Input: הקלטה קולית למשימות וקניות + הקראה + זיהוי שם אוטומטי!
@@ -53,13 +54,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v9.8 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v9.9 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="9.8">
+    <meta name="version" content="9.9">
     <meta name="last-updated" content="2026-02-13">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Voice Confirm: אישור קולי + הגבלת 5 שניות + תיקון הקראה כפולה! 🎤">
+    <meta name="changelog" content="Voice Loop: להוסיף עוד? לולאת הקלטה רציפה! 🔄">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1783,7 +1784,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v9.8</div>
+        <div class="version-badge-login">v9.9</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1843,7 +1844,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v9.8</span>
+                        <span class="version-badge-header">v9.9</span>
                     </div>
                 </div>
                 
@@ -4719,7 +4720,7 @@
                     shopping: shopping || {},
                     deletionHistory: deletionHistory || [],
                     familyMembers: familyMembers || {},
-                    version: '9.8'
+                    version: '9.9'
                 };
                 
                 // Convert to JSON
@@ -4920,6 +4921,28 @@
                     return;
                 }
                 
+                if (voiceState === 'listening_add_more') {
+                    let answer = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        answer += event.results[i][0].transcript;
+                    }
+                    answer = answer.trim();
+                    
+                    if (answer.includes('כן') || answer.includes('עוד') || answer.includes('נכון') || answer.includes('אישור')) {
+                        voiceState = 'done';
+                        clearTimeout(voiceTimeout);
+                        try { voiceRecognition.stop(); } catch(e) {}
+                        // Restart recording for new item
+                        setTimeout(() => startVoiceInput(voiceInputMode), 300);
+                    } else if (answer.includes('לא') || answer.includes('מספיק') || answer.includes('בטל') || answer.includes('סיים')) {
+                        voiceState = 'done';
+                        clearTimeout(voiceTimeout);
+                        try { voiceRecognition.stop(); } catch(e) {}
+                        closeVoiceModal();
+                    }
+                    return;
+                }
+                
                 voiceInterimText = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -4935,7 +4958,7 @@
                 console.error('Voice error:', event.error);
                 clearTimeout(voiceTimeout);
                 
-                if (voiceState === 'listening_confirm') {
+                if (voiceState === 'listening_confirm' || voiceState === 'listening_add_more') {
                     voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
                     document.getElementById('voiceModalActions').style.display = 'flex';
@@ -4966,6 +4989,13 @@
                     // Confirmation listening ended without answer - show buttons
                     voiceState = 'idle';
                     document.getElementById('voiceModalStatus').textContent = 'לחץ אשר או בטל';
+                    document.getElementById('voiceModalActions').style.display = 'flex';
+                    return;
+                }
+                
+                if (voiceState === 'listening_add_more') {
+                    voiceState = 'idle';
+                    document.getElementById('voiceModalStatus').textContent = 'לחץ הקלט שוב להוספה או בטל לסיום';
                     document.getElementById('voiceModalActions').style.display = 'flex';
                     return;
                 }
@@ -5165,7 +5195,35 @@
                 });
             }
             
-            closeVoiceModal();
+            askAddMore();
+        }
+        
+        function askAddMore() {
+            voiceState = 'playback';
+            document.getElementById('voiceModalText').textContent = '';
+            document.getElementById('voiceModalActions').style.display = 'none';
+            document.getElementById('voiceModalIcon').textContent = '✅';
+            document.getElementById('voiceModalStatus').textContent = '🔊 נוסף! להוסיף עוד?';
+            
+            speakText('נוסף בהצלחה! להוסיף עוד?', () => {
+                voiceState = 'listening_add_more';
+                document.getElementById('voiceModalStatus').textContent = '🎤 אמור כן או לא...';
+                document.getElementById('voiceModalActions').style.display = 'flex';
+                
+                try {
+                    voiceRecognition.start();
+                    voiceTimeout = setTimeout(() => {
+                        if (voiceState === 'listening_add_more') {
+                            voiceState = 'idle';
+                            try { voiceRecognition.stop(); } catch(e) {}
+                            document.getElementById('voiceModalStatus').textContent = 'לחץ הקלט שוב או בטל';
+                        }
+                    }, 4000);
+                } catch(e) {
+                    voiceState = 'idle';
+                    document.getElementById('voiceModalStatus').textContent = 'לחץ הקלט שוב או בטל';
+                }
+            });
         }
         
         function autoDetectAssignee(text) {
