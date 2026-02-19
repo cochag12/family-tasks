@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v10.3 (20/02/2026) - 📱 WhatsApp Notify: שליחת הודעה אוטומטית לכל המשפחה כשמקצים להם משימה!
     v10.2 (13/02/2026) - ⚡ Quick Voice: הקלטה → 5 שניות → מוסיף אוטומטית! בלי אישור, בלי השמעה!
     v10.1 (13/02/2026) - 🔧 Cache Fix: ניקוי Service Worker אוטומטי + תיקון נראות קניות + הקלטה פשוטה!
     v10.0 (13/02/2026) - 🎙️ Voice Rewrite: שכתוב מלא! הקלטה → הקראה → אשר/הקלט שוב → נוסף!
@@ -57,13 +58,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v10.2 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v10.3 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="10.2">
-    <meta name="last-updated" content="2026-02-13">
+    <meta name="version" content="10.3">
+    <meta name="last-updated" content="2026-02-20">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="Quick Voice: הקלטה אוטומטית ב-5 שניות! ⚡">
+    <meta name="changelog" content="WhatsApp Notify: הודעה אוטומטית לכל המשפחה! 📱">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -2900,6 +2901,8 @@
             tasksRef.child(newTask.id).set(newTask)
                 .then(() => {
                     input.value = '';
+                    const assigneeId = quickSelectedAssignee;
+                    const taskTitle = newTask.title;
                     quickSelectedAssignee = null;
                     
                     // Reset selection
@@ -2907,6 +2910,9 @@
                     grid.querySelectorAll('.assignee-btn').forEach(btn => btn.classList.remove('selected'));
                     
                     showToast(`✅ משימה נוספה ל-${newTask.assignedToName}!`);
+                    
+                    // Notify via WhatsApp
+                    notifyViaWhatsApp(assigneeId, taskTitle);
                 })
                 .catch(error => {
                     console.error('Error adding task:', error);
@@ -3019,6 +3025,9 @@
                 .then(() => {
                     console.log('✅ משימה נוספה ל-Firebase');
                     closeAddTaskModal();
+                    
+                    // Notify via WhatsApp
+                    notifyViaWhatsApp(selectedAssignee, task.title);
                 })
                 .catch(error => {
                     console.error('❌ שגיאה:', error);
@@ -4873,6 +4882,30 @@
                 return null;
             }
         }
+        // ==================== WHATSAPP NOTIFICATION ====================
+        
+        const whatsappNumbers = {
+            hagai: '972524268038',
+            liat: '972525974009',
+            ariel: '972587969979',
+            maya: '972525255551'
+        };
+        
+        function notifyViaWhatsApp(assigneeId, taskTitle) {
+            // לא שולח אם המשתמש מקצה לעצמו
+            if (currentUser.id === assigneeId) return;
+            
+            // בודק אם יש מספר למשתמש הזה
+            const phoneNumber = whatsappNumbers[assigneeId];
+            if (!phoneNumber) return;
+            
+            const message = encodeURIComponent(`🔔 יש לך משימה חדשה!\n📋 ${taskTitle}\n👤 מאת: ${currentUser.name}`);
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            
+            // פותח ישר בלי לשאול
+            window.open(whatsappUrl, '_blank');
+        }
+        
         // ==================== VOICE INPUT (AUTO-ADD) ====================
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4994,7 +5027,11 @@
                         isPinned: false, isPersonal: assignee.id === currentUser.id,
                         isGeneral: false, isRecurring: false, dueDate: null
                     };
-                    tasksRef.child(t.id).set(t).then(() => showToast('✅ ' + (taskText || text) + ' → ' + assignee.name));
+                    tasksRef.child(t.id).set(t).then(() => {
+                        showToast('✅ ' + (taskText || text) + ' → ' + assignee.name);
+                        // Notify via WhatsApp
+                        notifyViaWhatsApp(assignee.id, taskText || text);
+                    });
                 } else {
                     const t = {
                         id: 'task_' + Date.now(), title: taskText, description: '',
