@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v11.0 (21/02/2026) - 📱 WhatsApp Button Fix: כפתור ירוק מעל המיקרופון, 8 שניות!
     v10.9 (20/02/2026) - 📱 WhatsApp Button: כפתור ירוק צף אחרי הקלטה קולית!
     v10.8 (20/02/2026) - ⚡ Voice WhatsApp: שליחה מיידית לפני Firebase + location.assign!
     v10.7 (20/02/2026) - 📱 WhatsApp Direct: פתיחה ישירה עם whatsapp:// protocol!
@@ -63,13 +64,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v10.9 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v11.0 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="10.9">
+    <meta name="version" content="11.0">
     <meta name="last-updated" content="2026-02-20">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="WhatsApp Button: כפתור ירוק צף אחרי הקלטה! 📱">
+    <meta name="changelog" content="WhatsApp Button: כפתור ירוק מעל המיקרופון! 📱">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1793,7 +1794,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v10.9</div>
+        <div class="version-badge-login">v11.0</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1856,7 +1857,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v10.9</span>
+                        <span class="version-badge-header">v11.0</span>
                     </div>
                 </div>
                 
@@ -4910,26 +4911,29 @@
             const encodedMsg = encodeURIComponent(message);
             const whatsappUrl = `whatsapp://send?phone=${contact.phone}&text=${encodedMsg}`;
             
-            // יצירת כפתור צף
+            // הסר כפתור קודם אם קיים
+            const oldBtn = document.getElementById('whatsappFloatBtn');
+            if (oldBtn) oldBtn.remove();
+            
+            // יצירת כפתור צף מעל המיקרופון
             const btn = document.createElement('button');
             btn.id = 'whatsappFloatBtn';
             btn.innerHTML = '📱 שלח WhatsApp';
             btn.style.cssText = `
                 position: fixed;
-                bottom: 100px;
+                bottom: 160px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: #25D366;
                 color: white;
                 border: none;
-                padding: 15px 30px;
-                border-radius: 30px;
-                font-size: 18px;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-size: 16px;
                 font-weight: bold;
-                box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+                box-shadow: 0 4px 15px rgba(37, 211, 102, 0.5);
                 z-index: 10000;
                 cursor: pointer;
-                animation: pulse 1s infinite;
             `;
             
             btn.onclick = () => {
@@ -4939,12 +4943,12 @@
             
             document.body.appendChild(btn);
             
-            // הסתר אחרי 5 שניות
+            // הסתר אחרי 8 שניות
             setTimeout(() => {
                 if (document.getElementById('whatsappFloatBtn')) {
                     btn.remove();
                 }
-            }, 5000);
+            }, 8000);
         }
         
         function notifyViaWhatsApp(assigneeId, taskTitle, useLocationHref = false) {
