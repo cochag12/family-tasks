@@ -3,6 +3,7 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v10.8 (20/02/2026) - ⚡ Voice WhatsApp: שליחה מיידית לפני Firebase + location.assign!
     v10.7 (20/02/2026) - 📱 WhatsApp Direct: פתיחה ישירה עם whatsapp:// protocol!
     v10.6 (20/02/2026) - 🔧 Voice WhatsApp Fix: תיקון פתיחת WhatsApp ישירה מהקלטה קולית!
     v10.5 (20/02/2026) - 📱 WhatsApp Auto-Send: שליחה אוטומטית עם CallMeBot! בלי ללחוץ שלח!
@@ -61,13 +62,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v10.7 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v10.8 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="10.7">
+    <meta name="version" content="10.8">
     <meta name="last-updated" content="2026-02-20">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="WhatsApp Direct: פתיחה ישירה בלי דף ביניים! 📱">
+    <meta name="changelog" content="Voice WhatsApp: שליחה מיידית + location.assign! ⚡">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1791,7 +1792,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v10.7</div>
+        <div class="version-badge-login">v10.8</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1854,7 +1855,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v10.7</span>
+                        <span class="version-badge-header">v10.8</span>
                     </div>
                 </div>
                 
@@ -4925,7 +4926,7 @@
                 const encodedMsg = encodeURIComponent(message);
                 const whatsappUrl = `whatsapp://send?phone=${contact.phone}&text=${encodedMsg}`;
                 
-                window.location.href = whatsappUrl;
+                window.location.assign(whatsappUrl);
             }
         }
         
@@ -5106,10 +5107,13 @@
                         isPinned: false, isPersonal: assignee.id === currentUser.id,
                         isGeneral: false, isRecurring: false, dueDate: null
                     };
+                    
+                    // 1. קודם WhatsApp (כדי לשמור על User Gesture)
+                    notifyViaWhatsApp(assignee.id, taskText || text);
+                    
+                    // 2. אחר כך שמירה ב-Firebase
                     tasksRef.child(t.id).set(t).then(() => {
                         showToast('✅ ' + (taskText || text) + ' → ' + assignee.name);
-                        // Notify via WhatsApp
-                        notifyViaWhatsApp(assignee.id, taskText || text);
                     });
                 } else {
                     const t = {
