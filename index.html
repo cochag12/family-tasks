@@ -3,6 +3,8 @@
     LOBALI - Elite Procrastination Management - משפחת חגי וליאת
     
     היסטוריית גרסאות:
+    v10.6 (20/02/2026) - 🔧 Voice WhatsApp Fix: תיקון פתיחת WhatsApp ישירה מהקלטה קולית!
+    v10.5 (20/02/2026) - 📱 WhatsApp Auto-Send: שליחה אוטומטית עם CallMeBot! בלי ללחוץ שלח!
     v10.4 (20/02/2026) - 📱 WhatsApp Notify: שליחת הודעה אוטומטית לכל המשפחה כשמקצים להם משימה!
     v10.2 (13/02/2026) - ⚡ Quick Voice: הקלטה → 5 שניות → מוסיף אוטומטית! בלי אישור, בלי השמעה!
     v10.1 (13/02/2026) - 🔧 Cache Fix: ניקוי Service Worker אוטומטי + תיקון נראות קניות + הקלטה פשוטה!
@@ -58,13 +60,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBALI v10.4 - Elite Procrastination Management 💜</title>
+    <title>LOBALI v10.6 - Elite Procrastination Management 💜</title>
     
     <!-- Version Info -->
-    <meta name="version" content="10.4">
+    <meta name="version" content="10.6">
     <meta name="last-updated" content="2026-02-20">
     <meta name="sync" content="firebase-realtime">
-    <meta name="changelog" content="WhatsApp Notify: הודעה אוטומטית לכל המשפחה! 📱">
+    <meta name="changelog" content="Voice WhatsApp Fix: תיקון פתיחת WhatsApp מהקלטה! 🔧">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
@@ -1788,7 +1790,7 @@
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
-        <div class="version-badge-login">v10.2</div>
+        <div class="version-badge-login">v10.6</div>
         
         <div class="brand-header">
             <svg class="logo-svg" viewBox="0 0 100 100">
@@ -1806,6 +1808,9 @@
         <div class="user-management">
             <button class="btn-manage" onclick="openUserManagementModal()">
                 👥 ניהול משתמשים
+            </button>
+            <button class="btn-manage" onclick="openCallMeBotSettings()" style="margin-top: 8px;">
+                📱 הגדרות WhatsApp
             </button>
         </div>
     </div>
@@ -1848,7 +1853,7 @@
                     <div class="user-details-compact">
                         <span class="user-name-small" id="userName">משתמש</span>
                         <span class="user-role-small" id="userRole">תפקיד</span>
-                        <span class="version-badge-header">v10.2</span>
+                        <span class="version-badge-header">v10.6</span>
                     </div>
                 </div>
                 
@@ -4882,28 +4887,107 @@
                 return null;
             }
         }
-        // ==================== WHATSAPP NOTIFICATION ====================
+        // ==================== WHATSAPP NOTIFICATION (CallMeBot) ====================
         
-        const whatsappNumbers = {
-            hagai: '972524268038',
-            liat: '972525974009',
-            ariel: '972587969979',
-            maya: '972525255551'
+        // מספרי טלפון ו-API Keys של CallMeBot
+        // כדי לקבל API Key: שלח "+34 612 04 83 01" הודעה "I allow callmebot to send me messages"
+        const whatsappContacts = {
+            hagai: { phone: '972524268038', apikey: localStorage.getItem('callmebot_hagai') || '' },
+            liat: { phone: '972525974009', apikey: localStorage.getItem('callmebot_liat') || '' },
+            ariel: { phone: '972587969979', apikey: localStorage.getItem('callmebot_ariel') || '' },
+            maya: { phone: '972525255551', apikey: localStorage.getItem('callmebot_maya') || '' }
         };
         
-        function notifyViaWhatsApp(assigneeId, taskTitle) {
+        function notifyViaWhatsApp(assigneeId, taskTitle, useLocationHref = false) {
             // לא שולח אם המשתמש מקצה לעצמו
             if (currentUser.id === assigneeId) return;
             
             // בודק אם יש מספר למשתמש הזה
-            const phoneNumber = whatsappNumbers[assigneeId];
-            if (!phoneNumber) return;
+            const contact = whatsappContacts[assigneeId];
+            if (!contact || !contact.phone) return;
             
-            const message = encodeURIComponent(`🔔 יש לך משימה חדשה!\n📋 ${taskTitle}\n👤 מאת: ${currentUser.name}`);
-            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            const message = `🔔 יש לך משימה חדשה!\n📋 ${taskTitle}\n👤 מאת: ${currentUser.name}`;
             
-            // פותח ישר בלי לשאול
-            window.open(whatsappUrl, '_blank');
+            // אם יש API Key - שולח אוטומטית דרך CallMeBot
+            if (contact.apikey) {
+                const encodedMsg = encodeURIComponent(message);
+                const url = `https://api.callmebot.com/whatsapp.php?phone=${contact.phone}&text=${encodedMsg}&apikey=${contact.apikey}`;
+                
+                // שליחה שקטה ברקע
+                fetch(url, { mode: 'no-cors' })
+                    .then(() => console.log('📱 הודעת WhatsApp נשלחה ל-' + assigneeId))
+                    .catch(err => console.error('שגיאה בשליחת WhatsApp:', err));
+                    
+                showToast('📱 הודעה נשלחה ל-WhatsApp!');
+            } else {
+                // אין API Key - פותח WhatsApp ידנית
+                const whatsappUrl = `https://wa.me/${contact.phone}?text=${encodeURIComponent(message)}`;
+                
+                // בהקלטה קולית משתמשים ב-setTimeout כדי לעקוף חסימת popup
+                if (useLocationHref) {
+                    setTimeout(() => {
+                        window.location.href = whatsappUrl;
+                    }, 100);
+                } else {
+                    window.open(whatsappUrl, '_blank');
+                }
+            }
+        }
+        
+        // פונקציה להגדרת API Keys
+        function openCallMeBotSettings() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'callmebotModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>⚙️ הגדרות WhatsApp אוטומטי</h3>
+                        <button class="close-btn" onclick="document.getElementById('callmebotModal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                            📱 <strong>הוראות:</strong> שלח הודעה למספר <strong dir="ltr">+34 612 04 83 01</strong> עם הטקסט:<br>
+                            <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">I allow callmebot to send me messages</code><br>
+                            תקבל API Key - הזן אותו כאן.
+                        </p>
+                        <div class="form-group">
+                            <label>🔑 API Key של חגי:</label>
+                            <input type="text" id="apikey_hagai" value="${localStorage.getItem('callmebot_hagai') || ''}" placeholder="הזן API Key">
+                        </div>
+                        <div class="form-group">
+                            <label>🔑 API Key של ליאת:</label>
+                            <input type="text" id="apikey_liat" value="${localStorage.getItem('callmebot_liat') || ''}" placeholder="הזן API Key">
+                        </div>
+                        <div class="form-group">
+                            <label>🔑 API Key של מיה:</label>
+                            <input type="text" id="apikey_maya" value="${localStorage.getItem('callmebot_maya') || ''}" placeholder="הזן API Key">
+                        </div>
+                        <div class="form-group">
+                            <label>🔑 API Key של אריאל:</label>
+                            <input type="text" id="apikey_ariel" value="${localStorage.getItem('callmebot_ariel') || ''}" placeholder="הזן API Key">
+                        </div>
+                        <button onclick="saveCallMeBotKeys()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">💾 שמור</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function saveCallMeBotKeys() {
+            localStorage.setItem('callmebot_hagai', document.getElementById('apikey_hagai').value.trim());
+            localStorage.setItem('callmebot_liat', document.getElementById('apikey_liat').value.trim());
+            localStorage.setItem('callmebot_maya', document.getElementById('apikey_maya').value.trim());
+            localStorage.setItem('callmebot_ariel', document.getElementById('apikey_ariel').value.trim());
+            
+            // עדכון האובייקט
+            whatsappContacts.hagai.apikey = localStorage.getItem('callmebot_hagai') || '';
+            whatsappContacts.liat.apikey = localStorage.getItem('callmebot_liat') || '';
+            whatsappContacts.maya.apikey = localStorage.getItem('callmebot_maya') || '';
+            whatsappContacts.ariel.apikey = localStorage.getItem('callmebot_ariel') || '';
+            
+            document.getElementById('callmebotModal').remove();
+            showToast('✅ הגדרות WhatsApp נשמרו!');
         }
         
         // ==================== VOICE INPUT (AUTO-ADD) ====================
@@ -5029,8 +5113,8 @@
                     };
                     tasksRef.child(t.id).set(t).then(() => {
                         showToast('✅ ' + (taskText || text) + ' → ' + assignee.name);
-                        // Notify via WhatsApp
-                        notifyViaWhatsApp(assignee.id, taskText || text);
+                        // Notify via WhatsApp - use location.href for voice input
+                        notifyViaWhatsApp(assignee.id, taskText || text, true);
                     });
                 } else {
                     const t = {
